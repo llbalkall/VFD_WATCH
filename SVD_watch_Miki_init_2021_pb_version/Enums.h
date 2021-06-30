@@ -1,0 +1,21 @@
+#ifndef ENUMS_H
+#define ENUMS_H
+
+enum Screen
+{
+    RPM_SCREEN,
+    MICROSTEP_SETTING_SCREEN,
+    MAX_SETTING_SCREEN,
+    MIN_SETTING_SCREEN,
+    SETTINGS_SCREEN
+};
+
+enum ButtonEnum
+{
+    BUTTON1,
+    BUTTON2,
+    BUTTON3,
+    BUTTON4,
+    BUTTON_ENCODER
+};
+#endif
