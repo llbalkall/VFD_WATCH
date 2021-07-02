@@ -4,11 +4,38 @@
 #include <EEPROMVar.h>
 #include <Wire.h>
 #include <avr/sleep.h>
-#include <avr/interrupt.h> 
-#include "VFDManager.h"
+#include <avr/interrupt.h>
+#include "functions.h" 
 
 #define DS3231_I2C_ADDRESS 0x68
+
+#define setPin(b) ( (b)<8 ? PORTD |=(1<<(b)) : PORTB |=(1<<(b-8)) )
+#define clrPin(b) ( (b)<8 ? PORTD &=~(1<<(b)) : PORTB &=~(1<<(b-8)) )
+#define tstPin(b) ( (b)<8 ? (PORTD &(1<<(b)))!=0 : (PORTB &(1<<(b-8)))!=0 )
+
 /* mapping of 6920's OUT pins to the bits in shift register */
+
+#define OUT0  0x0002
+#define OUT1  0x0004
+#define OUT2  0x0008
+#define OUT3  0x0010
+#define OUT4  0x0020
+#define OUT5  0x0040
+#define OUT6  0x0080
+#define OUT7  0x0100
+#define OUT8  0x0200
+#define OUT9  0x0400
+#define OUT10 0x0800
+#define OUT11 0x0001
+                                    //   -- A -- 
+#define vfd_segment_A     OUT11         //  |       |
+#define vfd_segment_B     OUT8          //  F       B
+#define vfd_segment_C     OUT2          //  |       |
+#define vfd_segment_D     OUT3          //   -- G --
+#define vfd_segment_E     OUT1          //  |       |  
+#define vfd_segment_F     OUT6          //  E       C
+#define vfd_segment_G     OUT9          //  |       |
+                                    //   -- D --    
 
 #define vfd_multiplexer_1    0x0020   // 10 h
 #define vfd_multiplexer_2    0x0002   // 1  h
@@ -79,7 +106,7 @@ const uint16_t LOW_BATTERY_ADC_VALUE     = 251;//3.55   //221 3.3;//188;//254;
 const uint16_t LOW_BATTERY_MESSAGE_DISPLAY_DURATION = 2000;
 const uint16_t LED_FLASH_INTERVAL = 150;
 
-//uint16_t char_to_segments(char inputChar);
+uint16_t char_to_segments(char inputChar);
 void set_vfd_cell(uint8_t cell_num, char character_to_set, bool include_colon);
 void update_button_state();
 void setDS3231time(byte second, byte minute, byte hour, 
@@ -133,8 +160,9 @@ bool vfd_blinking_noncolon_grids[4] = {false, false, false, false};
 const uint16_t vfd_cells[5] = {vfd_multiplexer_1, vfd_multiplexer_2, vfd_multiplexer_3, vfd_multiplexer_4, vfd_multiplexer_5};
 const uint16_t MONTH_LENGTHS[13] = {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; 
 
-
-VFDManager vfdManager;
+unsigned long duration_pins = 0;
+unsigned long duration_not_pins = 0;
+//VFDManager vfdManager;
 
 void setup() {
   // Temperature
@@ -208,6 +236,7 @@ void loop() {
       read_current_time();
       select_control_state();
       read_light_level();
+      //debug_4_digit(duration_pins, vfd_displayed_characters);
       show_displayed_character_array();
     }
     if (battery_level == 1 || battery_level == 2) flash_leds();
@@ -708,7 +737,7 @@ void power_board_down(bool permit_wakeup) {
     case SETTING_TEMPERATURE:
       EEPROM.write(temperature_unit_eeprom_address, temperature_unit);
       break;
-  };
+  }
   digitalWrite(LED_1_PIN, LOW);
   digitalWrite(LED_2_PIN, LOW);
   digitalWrite(LED_3_PIN, LOW);
@@ -800,34 +829,52 @@ ISR(TIMER1_COMPA_vect){ //timer1 interrupt 50Hz toggles pin 5, 6
   }
 */
 
+unsigned long check_point = 0;
+
 void set_vfd_cell(uint8_t cell_num, char character_to_set, bool include_colon) {
   if (cell_num > 4) return;
-  uint16_t segment_pattern = vfdManager.char_to_segments(character_to_set);
+  unsigned long current_millis__ = micros();
+  
+  uint16_t segment_pattern = char_to_segments(character_to_set);
   segment_pattern |= vfd_cells[cell_num];
   if (include_colon) segment_pattern |= vfd_cells[2];
   digitalWrite(VFD_BLANK_PIN, HIGH);
   bool out_bit = 0;
+  duration_not_pins = current_millis__  - check_point;
+  check_point = current_millis__ ;
   for (char i = 0; i < 12; i++) {
     out_bit = 1 & (segment_pattern >> i);
     // Load data to pin
     if (out_bit) digitalWrite(VFD_DATA_PIN, HIGH);
     else digitalWrite(VFD_DATA_PIN, LOW);
+    /*if (out_bit) clrPin(VFD_DATA_PIN);
+    else setPin(VFD_DATA_PIN);*/
+    
     // Trigger write: CLK pin High->Low
-    digitalWrite(VFD_LOAD_PIN, LOW);
-    digitalWrite(VFD_LOAD_PIN, HIGH);
-    digitalWrite(VFD_CLK_PIN, HIGH);
-    digitalWrite(VFD_CLK_PIN, LOW);
+    //digitalWrite(VFD_LOAD_PIN, LOW);
+    //digitalWrite(VFD_LOAD_PIN, HIGH);
+   
+    clrPin(VFD_LOAD_PIN);
+    setPin(VFD_LOAD_PIN);
+    //digitalWrite(VFD_CLK_PIN, HIGH);
+    //digitalWrite(VFD_CLK_PIN, LOW);
+    setPin(VFD_CLK_PIN); // else
+    clrPin(VFD_CLK_PIN);
     // Trigger shift: LOAD pin Low->High
     
   }
+  /*for (char k = 0; k<80; k++){
+    digitalWrite(LED_1_PIN, LOW);
+    digitalWrite(LED_1_PIN, HIGH);
+  }*/
   // Show output to display
   /*if (light_level == 0) digitalWrite(4, LOW);
   else analogWrite(4, light_level);*/
   analogWrite(VFD_BLANK_PIN, light_level);
   //digitalWrite(VFD_BLANK_PIN, LOW);
-  
+  duration_pins = micros() - check_point;
 }
-/*
+
 uint16_t char_to_segments(char inputChar) {
   uint16_t outputSegCode = 0x0000;
   switch(inputChar) {
@@ -990,7 +1037,7 @@ uint16_t char_to_segments(char inputChar) {
     //vfd_segment_A | vfd_segment_B | vfd_segment_C | vfd_segment_D | vfd_segment_E | vfd_segment_F | vfd_segment_G;
   }
   return outputSegCode;
-}*/
+}
 void readDS3231time(byte *second, byte *minute, byte *hour,
 byte *dayOfWeek, byte *dayOfMonth, byte *month, byte *year) {
   Wire.beginTransmission(DS3231_I2C_ADDRESS);
@@ -1084,7 +1131,6 @@ void flash_leds() {
     digitalWrite(LED_4_PIN, LOW);
   }
 }
-
 float celsius_to_fahrenheit(float celsius) {
   float fh = (celsius * 9.0) / 5.0;
   fh += 32;

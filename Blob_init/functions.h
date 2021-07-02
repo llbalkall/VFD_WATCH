@@ -8,8 +8,8 @@ float celsius_to_fahrenheit(float celsius);
 int decToBcd(int val);
 
 int bcdToDec(int val);
-
-#include <Wire.h>
+*/
+/*#include <Wire.h>
 #define DS3231_I2C_ADDRESS 0x68
 
 class DS3231Manager{
@@ -18,8 +18,8 @@ class DS3231Manager{
         unsigned char* dayOfWeek, unsigned char* dayOfMonth, unsigned char* month, unsigned char* year);
         void setDS3231time(unsigned char second, unsigned char minute, unsigned char hour, unsigned char dayOfWeek, 
         unsigned char dayOfMonth, unsigned char month, unsigned char year);
-};
-
+};*/
+/*
 #define LED_1_PIN A1
 #define LED_2_PIN A0
 #define LED_4_PIN 7
@@ -32,4 +32,7 @@ class LEDs{
         void turn_off();
 };
 */
+
+void debug_4_digit(float n, char* vfd_displayed_characters);
+
 #endif

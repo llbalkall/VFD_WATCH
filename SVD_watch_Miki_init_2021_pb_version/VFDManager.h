@@ -3,6 +3,10 @@
 
 #include <Arduino.h>
 
+#define setPin(b) ( (b)<8 ? PORTD |=(1<<(b)) : PORTB |=(1<<(b-8)) )
+#define clrPin(b) ( (b)<8 ? PORTD &=~(1<<(b)) : PORTB &=~(1<<(b-8)) )
+#define tstPin(b) ( (b)<8 ? (PORTD &(1<<(b)))!=0 : (PORTB &(1<<(b-8)))!=0 )
+
 /* mapping of 6920's OUT pins to the bits in shift register */
 #define OUT0  0x0002      //B00000010
 #define OUT1  0x0004      //B00000100

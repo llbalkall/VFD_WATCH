@@ -160,6 +160,7 @@ void loop() { //the soul, everything
         read_current_time();
         select_control_state();
         debug_4_digit(8888);
+        delay(3);
         vfdManager.show_displayed_character_array(current_millis);
         loop_counter +=1;
       }
@@ -597,7 +598,9 @@ void flash_leds() {//output
 }
 
 ISR(TIMER1_COMPA_vect){ //timer1 interrupt 50Hz toggles pin 5, 6
-  vfdManager.heating();
+  digitalWrite(HEAT1_PIN, LOW);
+  digitalWrite(HEAT2_PIN, HIGH);
+  //vfdManager.heating();
   /*if ((vfdManager.heat_counter >= 4 && vfdManager.heat_counter < 10) || vfdManager.heat_counter >= 14){
     digitalWrite(HEAT1_PIN, LOW);
     digitalWrite(HEAT2_PIN, LOW);

@@ -1,5 +1,40 @@
 #include "functions.h"
 #include <Arduino.h>
+
+void debug_4_digit(float n, char* vfd_displayed_characters){
+  /*int tens = 0;
+  while (n>=10){
+    n = n/10.0;
+    tens++;
+  }
+  vfd_displayed_characters[0] = int(n) % 10;
+  vfd_displayed_characters[1] = int(n*10) % 10;
+  vfd_displayed_characters[2] = ' ';
+  vfd_displayed_characters[3] = int (tens/10) % 10; 
+  vfd_displayed_characters[4] = int(n) % 10;*/
+  if (n>9999.9999){
+    uint8_t n_tenthousands = int(n / 10000) % 10;
+    uint8_t n_thousands = int(n / 1000) % 10;
+    uint8_t n_hundreds = int(n / 100) % 10;
+    uint8_t n_tens     = int(n / 10) % 10;
+    uint8_t n_ones     = int(n)  % 10;
+    vfd_displayed_characters[0] = n_tenthousands;
+    vfd_displayed_characters[1] = n_thousands;
+    vfd_displayed_characters[2] = 1;
+    vfd_displayed_characters[3] = n_hundreds; 
+    vfd_displayed_characters[4] = n_tens;
+  } else {
+    uint8_t n_thousands = int(n / 1000) % 10;
+    uint8_t n_hundreds = int(n / 100) % 10;
+    uint8_t n_tens     = int(n / 10) % 10;
+    uint8_t n_ones     = int(n)  % 10;
+    vfd_displayed_characters[0] = n_thousands;
+    vfd_displayed_characters[1] = n_hundreds;
+    vfd_displayed_characters[2] = ' ';
+    vfd_displayed_characters[3] = n_tens; 
+    vfd_displayed_characters[4] = n_ones;  
+  }
+}
 /*
 // Function definition
 int add(int a, int b)
@@ -52,7 +87,7 @@ void DS3231Manager::setDS3231time(unsigned char second, unsigned char minute, un
   Wire.write(decToBcd(year)); // set year (0 to 99)
   Wire.endTransmission();
 }
-
+/*
 LEDs::LEDs(){
     pinMode(LED_1_PIN, OUTPUT);
     pinMode(LED_2_PIN, OUTPUT);

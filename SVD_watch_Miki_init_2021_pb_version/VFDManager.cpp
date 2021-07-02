@@ -1,6 +1,8 @@
 #include "VFDManager.h"
 
 
+
+
 VFDManager::VFDManager(){
   // VFD futes pinek
   pinMode(HEAT1_PIN, OUTPUT);
@@ -13,7 +15,10 @@ VFDManager::VFDManager(){
   // VFD futes tap
   pinMode(POWER_SWITCH_PIN, OUTPUT);
   digitalWrite(POWER_SWITCH_PIN, LOW);
-
+  
+  digitalWrite(HEAT1_PIN, HIGH);
+    digitalWrite(HEAT2_PIN, LOW);
+    
   current_cell_id = 0;
   colon_millis = 0;
   colon_steady = false;
@@ -35,11 +40,20 @@ void VFDManager::set_cell(uint8_t cell_num, char character_to_set, bool include_
     if (out_bit) digitalWrite(DATA_PIN, HIGH);
     else digitalWrite(DATA_PIN, LOW);
     // Trigger write: CLK pin High->Low
-    digitalWrite(LOAD_PIN, LOW);
+    /*digitalWrite(LOAD_PIN, LOW);
     digitalWrite(LOAD_PIN, HIGH);
     digitalWrite(CLK_PIN, HIGH);
-    digitalWrite(CLK_PIN, LOW);
+    digitalWrite(CLK_PIN, LOW);*/
     // Trigger shift: LOAD pin Low->High
+
+   
+    clrPin(LOAD_PIN);
+    setPin(LOAD_PIN);
+
+    setPin(CLK_PIN); // else
+    clrPin(CLK_PIN);
+
+    
     
   }
   // Show output to display
@@ -56,21 +70,21 @@ void VFDManager::heating(){
   int last = 20;
   int first = secondd * percent / 100;
   int third = last * percent /100 ;*/
-  
-  if ((heat_counter >= 7 && heat_counter < 10) || heat_counter >= 17){
+  /*
+  if ((heat_counter >= 2 && heat_counter < 10) || heat_counter >= 12){
     digitalWrite(HEAT1_PIN, LOW);
     digitalWrite(HEAT2_PIN, LOW);
-  } else if (heat_counter < 7) {
+  } else if (heat_counter < 2) {
     digitalWrite(HEAT1_PIN, HIGH);
     digitalWrite(HEAT2_PIN, LOW);
-  } else if (heat_counter >= 10 && heat_counter < 17){
+  } else if (heat_counter >= 10 && heat_counter < 12){
     digitalWrite(HEAT1_PIN, HIGH);
     digitalWrite(HEAT2_PIN, LOW);
   }
   heat_counter += 1;
   if (heat_counter == 20) {
       heat_counter = 0;
-  }
+  }*/
 }
 
 void VFDManager::update_char_array(char * characters){ //TODO the char_array parameter shouldn't be there
