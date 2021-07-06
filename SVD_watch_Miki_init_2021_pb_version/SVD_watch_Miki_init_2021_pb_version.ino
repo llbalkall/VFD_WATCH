@@ -88,7 +88,7 @@ int stopwatch_times[4] = {0, 0, 0, 0};
 const uint16_t MONTH_LENGTHS[13] = {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; 
 
 DS3231Manager ds3231Manager;
-VFDManager vfdManager;
+VFDManager vfdManager = VFDManager();
 LEDs leds;
 
 void setup() { //input, output init, setting up interrupts, timers
@@ -104,43 +104,15 @@ void setup() { //input, output init, setting up interrupts, timers
   
   pinMode(POWER_MEASURE_PIN, OUTPUT);
   digitalWrite(POWER_MEASURE_PIN, LOW);
-
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
   power_board_down(true);
 }
 
-void setup_interrupt(){
-  // Processor timer interrupt setup
-  cli(); // Stop existing interrupts
-  // Set timer1 interrupt at 50Hz
-  TCCR1A = 0;// set entire TCCR0A register to 0
-  TCCR1B = 0;// same for TCCR0B
-  TCNT1  = 0;//initialize counter value to 0
-  // set compare match register for 50Hz increments
-  OCR1A = 16;//312;// = (16*10^6) / (50*1024) - 1 (must be <65536)
-  // turn on CTC mode
-  TCCR1B |= (1 << WGM12);
-  // Set CS10 and CS12 bits for 1024 prescaler
-  TCCR1B |= (1 << CS12) | (1 << CS10);  
-  // enable timer compare interrupt
-  TIMSK1 |= (1 << OCIE1A);
-  sei(); // Allow interrupts
-}
-
 void debug_4_digit(float n);
-float loop_counter = 0.0;
-float loopFPS = 0;
-unsigned long one_sec_checker = 0;
-unsigned long counter = 0;
+
 void select_control_state();
 void loop() { //the soul, everything
   current_millis = millis();
-  
-    if (current_millis-one_sec_checker > 1000) {
-      loopFPS = loop_counter;
-      loop_counter = 0;
-      one_sec_checker = current_millis;
-    }
     //read_battery_level();
     if (battery_level == 4) read_battery_level();
     else if (battery_level == 3) power_board_down(false);
@@ -159,10 +131,10 @@ void loop() { //the soul, everything
         update_button_state();
         read_current_time();
         select_control_state();
-        debug_4_digit(8888);
-        delay(3);
+        //debug_4_digit(8888);
+        //delay(3);
         vfdManager.show_displayed_character_array(current_millis);
-        loop_counter +=1;
+   
       }
       if (battery_level == 1 || battery_level == 2) flash_leds();
       
@@ -172,7 +144,6 @@ void loop() { //the soul, everything
       vfdManager.colon_steady = false;
       if (current_millis - last_input_millis > SLEEP_TIMEOUT_INTERVAL && !board_sleeping) power_board_down(true);
     }
-  
 }
 
 void update_button_state() {//button input
@@ -598,23 +569,7 @@ void flash_leds() {//output
 }
 
 ISR(TIMER1_COMPA_vect){ //timer1 interrupt 50Hz toggles pin 5, 6
-  digitalWrite(HEAT1_PIN, LOW);
-  digitalWrite(HEAT2_PIN, HIGH);
-  //vfdManager.heating();
-  /*if ((vfdManager.heat_counter >= 4 && vfdManager.heat_counter < 10) || vfdManager.heat_counter >= 14){
-    digitalWrite(HEAT1_PIN, LOW);
-    digitalWrite(HEAT2_PIN, LOW);
-  } else if (vfdManager.heat_counter < 4) {
-    digitalWrite(HEAT1_PIN, HIGH);
-    digitalWrite(HEAT2_PIN, LOW);
-  } else if (vfdManager.heat_counter >= 10 && vfdManager.heat_counter < 14){
-    digitalWrite(HEAT1_PIN, HIGH);
-    digitalWrite(HEAT2_PIN, LOW);
-  }
-  vfdManager.heat_counter += 1;
-  if (vfdManager.heat_counter == 20) {
-      vfdManager.heat_counter = 0;
-  }*/
+  vfdManager.heating();
 }
 
 

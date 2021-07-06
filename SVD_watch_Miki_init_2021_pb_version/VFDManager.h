@@ -1,6 +1,7 @@
 #ifndef VFDMANAGER_H_INCLUDED
 #define VFDMANAGER_H_INCLUDED
-
+#include <avr/sleep.h>
+#include <avr/interrupt.h> 
 #include <Arduino.h>
 
 #define setPin(b) ( (b)<8 ? PORTD |=(1<<(b)) : PORTB |=(1<<(b-8)) )
@@ -49,9 +50,10 @@ class VFDManager{
         const short COLON_BLINK_PERIOD = 250;
         unsigned char current_cell_id;
         unsigned long colon_millis;
-        
-
-    public:
+        bool is_outer_needed;
+        bool delay_needed;
+        int counter_f = 100;
+    public: 
         int heat_counter;
         bool repower;
         bool colon_steady;
@@ -62,6 +64,7 @@ class VFDManager{
         void update_char_array(char* characters);
         void update_char_array(char c1, char c2, char c3, char c4, char c5);
         void show_displayed_character_array(unsigned long current_millis);
+        void setup_interrupt_for_heating();
         void heating();
         void turn_on();
         void turn_off();

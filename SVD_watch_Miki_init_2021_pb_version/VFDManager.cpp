@@ -1,8 +1,5 @@
 #include "VFDManager.h"
 
-
-
-
 VFDManager::VFDManager(){
   // VFD futes pinek
   pinMode(HEAT1_PIN, OUTPUT);
@@ -17,18 +14,56 @@ VFDManager::VFDManager(){
   digitalWrite(POWER_SWITCH_PIN, LOW);
   
   digitalWrite(HEAT1_PIN, HIGH);
-    digitalWrite(HEAT2_PIN, LOW);
-    
+  digitalWrite(HEAT2_PIN, LOW);
+
+  setup_interrupt_for_heating();
+  
   current_cell_id = 0;
+  is_outer_needed = false;
+  delay_needed = false;
   colon_millis = 0;
   colon_steady = false;
   heat_counter = 0;
   repower = false;
 }
 
+
+
 void VFDManager::set_cell(uint8_t cell_num, char character_to_set, bool include_colon) {//display
   if (cell_num > 4) return;
-  uint16_t segment_pattern = char_to_segments(character_to_set);
+  uint16_t segment_pattern;
+  
+  if (current_cell_id == 0) {
+    if (is_outer_needed){
+      segment_pattern = char_to_segments(character_to_set) & char_to_segments('/'); 
+      delay_needed = true;
+      is_outer_needed = false;
+    } else {
+      segment_pattern = char_to_segments(character_to_set);
+      is_outer_needed = true;
+    }
+  } else if (current_cell_id == 4){
+    if (is_outer_needed){
+      segment_pattern = char_to_segments(character_to_set) & char_to_segments('I'); 
+      delay_needed = true;
+      is_outer_needed = false;
+      if (counter_f <1){
+        delay_needed = true;
+        is_outer_needed = true;
+        counter_f ++;
+      }  else {
+        counter_f = 0;
+        delay_needed = true;
+        is_outer_needed = false;
+      }
+    } else {
+      segment_pattern = char_to_segments(character_to_set);
+      is_outer_needed = true;
+    }
+  } else {
+    segment_pattern = char_to_segments(character_to_set);
+  }
+  //segment_pattern = char_to_segments(character_to_set);
   segment_pattern |= cells[cell_num];
   if (include_colon) segment_pattern |= cells[2];
   digitalWrite(BLANK_PIN, HIGH);
@@ -45,46 +80,57 @@ void VFDManager::set_cell(uint8_t cell_num, char character_to_set, bool include_
     digitalWrite(CLK_PIN, HIGH);
     digitalWrite(CLK_PIN, LOW);*/
     // Trigger shift: LOAD pin Low->High
-
-   
     clrPin(LOAD_PIN);
     setPin(LOAD_PIN);
 
     setPin(CLK_PIN); // else
     clrPin(CLK_PIN);
-
-    
-    
   }
   // Show output to display
   //analogWrite(BLANK_PIN, 100);
   digitalWrite(BLANK_PIN, LOW);
 }
 
-  
+
+void VFDManager::setup_interrupt_for_heating(){
+  cli(); // Stop existing interrupts
+  // Set timer1 interrupt at 50Hz
+  TCCR1A = 0;// set entire TCCR0A register to 0
+  TCCR1B = 0;// same for TCCR0B
+  TCNT1  = 0;//initialize counter value to 0
+  // set compare match register for 50Hz increments
+  OCR1A = 6;//312;// = (16*10^6) / (50*1024) - 1 (must be <65536)
+  // turn on CTC mode
+  TCCR1B |= (1 << WGM12);
+  // Set CS10 and CS12 bits for 1024 prescaler
+  TCCR1B |= (1 << CS11) | (1 << CS10);  
+  // enable timer compare interrupt
+  TIMSK1 |= (1 << OCIE1A);
+  sei(); // Allow interrupts
+}
+ 
   
 void VFDManager::heating(){
-  
-  /*int percent = 10 * ((millis() / 2000) % 10);
+  int percent = 10 * ((millis() / 2000) % 10);
   int secondd = 10;
   int last = 20;
   int first = secondd * percent / 100;
-  int third = last * percent /100 ;*/
-  /*
-  if ((heat_counter >= 2 && heat_counter < 10) || heat_counter >= 12){
+  int third = last * percent /100 ;
+  
+  if ((heat_counter >= 8 && heat_counter < 10) || heat_counter >= 18){
     digitalWrite(HEAT1_PIN, LOW);
     digitalWrite(HEAT2_PIN, LOW);
-  } else if (heat_counter < 2) {
+  } else if (heat_counter < 8) {
     digitalWrite(HEAT1_PIN, HIGH);
     digitalWrite(HEAT2_PIN, LOW);
-  } else if (heat_counter >= 10 && heat_counter < 12){
+  } else if (heat_counter >= 10 && heat_counter < 18){
     digitalWrite(HEAT1_PIN, HIGH);
     digitalWrite(HEAT2_PIN, LOW);
   }
   heat_counter += 1;
   if (heat_counter == 20) {
       heat_counter = 0;
-  }*/
+  }
 }
 
 void VFDManager::update_char_array(char * characters){ //TODO the char_array parameter shouldn't be there
@@ -102,8 +148,14 @@ void VFDManager::update_char_array(char c1, char c2, char c3, char c4, char c5){
 }
 
 void VFDManager::show_displayed_character_array(unsigned long current_millis) {//display
+  
   if (current_cell_id == 2) {
     current_cell_id += 1;
+  }
+  
+  if (delay_needed) {
+    //delay(1);
+    delay_needed = false;
   }
   //unsigned long current_millis = millis(); //TODO 
   bool include_colon = ((current_millis - colon_millis) < COLON_BLINK_PERIOD || colon_steady) && displayed_characters[2] != ' ';
@@ -111,9 +163,24 @@ void VFDManager::show_displayed_character_array(unsigned long current_millis) {/
   if (displayed_characters[3] == ' ') {
     if (current_cell_id != 1) include_colon = false;
   } else if (current_cell_id != 3) include_colon = false;
+
+  set_cell(current_cell_id, displayed_characters[current_cell_id] & displayed_characters[current_cell_id], include_colon);  
   
-  set_cell(current_cell_id, displayed_characters[current_cell_id], include_colon);
-  current_cell_id += 1;
+  /*if (current_cell_id==0) {
+    //delay(0);
+  } else if (current_cell_id == 1) {
+    //delay(0);
+  } else if (current_cell_id == 3) {
+    delay(1);
+  } else if (current_cell_id == 4) {
+    delay(1);
+  }  */
+  //delay(1);
+  if (is_outer_needed && (current_cell_id == 0 || current_cell_id == 4)){
+  } else {
+    current_cell_id ++;
+  }
+  
   if (current_millis - colon_millis > 2 * COLON_BLINK_PERIOD) colon_millis = current_millis;
   if (current_cell_id == 5) current_cell_id = 0;
 }
@@ -279,6 +346,9 @@ unsigned int VFDManager::char_to_segments(char inputChar) {
     break;
     case 'L':
       outputSegCode = segment_D | segment_E | segment_F;
+    break;
+    case '/':
+      outputSegCode = segment_E | segment_F;
     break;
     case '*':
       outputSegCode = segment_A | segment_B | segment_F | segment_G;
