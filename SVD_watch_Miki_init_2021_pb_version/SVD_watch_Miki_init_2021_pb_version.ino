@@ -42,15 +42,10 @@ const int BUTTON_HOLD_DURATION_MINIMUM = 1000; // milliseconds
 const short COLON_BLINK_PERIOD = 250;          // also ms
 const char NUM_CONTROL_STATES = 20;
 const uint16_t TEMP_READ_INTERVAL = 1000;
-const uint16_t BATTERY_READ_INTERVAL = 10;
-const uint16_t BATTERY_READ_MAX_COUNT = 15;
 const uint16_t SLEEP_TIMEOUT_INTERVAL = 25000;
 const uint16_t LIGHT_LOW_MAX_VALUE = 100;
 const uint16_t LIGHT_MED_MAX_VALUE = 200;
 const uint16_t LIGHT_READ_INTERVAL = 1000;
-const uint16_t HIGH_BATTERY_ADC_VALUE    = 270;//302;//3.9    //275 3.7;//285;//760;
-const uint16_t MEDIUM_BATTERY_ADC_VALUE  = 260;//275;//3.7    //248 3.5;//269;
-const uint16_t LOW_BATTERY_ADC_VALUE     = 240;//251;//3.55   //221 3.3;//188;//254;
 const uint16_t LOW_BATTERY_MESSAGE_DISPLAY_DURATION = 2000;
 const uint16_t LED_FLASH_INTERVAL = 150;
 
@@ -70,9 +65,6 @@ volatile bool ignore_next_button_release = false;;
 int button_hold_counts[2] = {0, 0};
 
 volatile bool board_sleeping = false;
-volatile byte battery_level = 0;
-float battery_adc_sum = 0;
-float battery_adc_measurement_count = 0;
 bool stopwatch_running = false;
 byte adcsra, mcucr1, mcucr2;
 uint16_t setting_value = 0;
@@ -90,6 +82,7 @@ const uint16_t MONTH_LENGTHS[13] = {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 3
 
 DS3231Manager ds3231Manager;
 VFDManager vfdManager = VFDManager();
+BatteryReadingManager batteryReadingManager;
 LEDs leds;
 
 void setup() { //input, output init, setting up interrupts, timers
@@ -101,7 +94,7 @@ void setup() { //input, output init, setting up interrupts, timers
   pinMode(BUTTON_1_PIN, INPUT_PULLUP);   // PCINT 1
   pinMode(BUTTON_2_PIN, INPUT_PULLUP);
   // Voltage check
-  pinMode(POWERSENSE_PIN, INPUT);
+  //pinMode(POWERSENSE_PIN, INPUT);
   
   pinMode(POWER_MEASURE_PIN, OUTPUT);
   digitalWrite(POWER_MEASURE_PIN, LOW);
@@ -111,27 +104,26 @@ void setup() { //input, output init, setting up interrupts, timers
 
 void select_control_state();
 
-const int BATTERY_READING = 4;
-const int INSTANT_TURN_OFF = 3;
-const int TOO_LOW_FOR_DISPLAY = 2;
-const int GETTING_LOW = 1;
-const int DECENT = 0;
 void loop() {
   current_millis = millis();
-  if (battery_level == BATTERY_READING) read_battery_level();
-  else if (battery_level == INSTANT_TURN_OFF) power_board_down(false);
-  else {
+  if (batteryReadingManager.battery_level == batteryReadingManager.BATTERY_READING){
+     batteryReadingManager.read_battery_level(current_millis);
+  } else if (batteryReadingManager.battery_level == batteryReadingManager.INSTANT_TURN_OFF) {
+    power_board_down(false);
+  } else {
     if (!board_sleeping && vfdManager.repower) {
       //digitalWrite(VFD_POWER_SWITCH_PIN, HIGH);
       vfdManager.turn_on();
-      if (battery_level != TOO_LOW_FOR_DISPLAY) digitalWrite(LOAD_PIN, HIGH);//TODO, what is this? VFD-s load pin
+      if (batteryReadingManager.battery_level != batteryReadingManager.TOO_LOW_FOR_DISPLAY){
+        digitalWrite(LOAD_PIN, HIGH);//TODO, what is this? VFD-s load pin
+      } 
       vfdManager.repower = false;
       wake_board_millis = current_millis;
       last_input_millis = current_millis;
     }
     // States: 0 - nothing pressed, 1 - #1 pressed and released, 2 - #2 pressed and released
     // 3 - #1 held, 4 - #2 held, 5 - both held
-    if (battery_level != TOO_LOW_FOR_DISPLAY) {
+    if (batteryReadingManager.battery_level != batteryReadingManager.TOO_LOW_FOR_DISPLAY) {
       update_button_state();
       read_current_time();
       select_control_state();
@@ -139,8 +131,10 @@ void loop() {
       //delay(3);
       vfdManager.show_displayed_character_array(current_millis);
     }
-    if (battery_level == GETTING_LOW || battery_level == TOO_LOW_FOR_DISPLAY) flash_leds();
-    
+    if (batteryReadingManager.battery_level == batteryReadingManager.GETTING_LOW || 
+        batteryReadingManager.battery_level == batteryReadingManager.TOO_LOW_FOR_DISPLAY) {
+      flash_leds();
+    }
     // End of interactive loop; all necessary input from button has been registered, reset it
     if (button_state != 0) last_input_millis = current_millis;
     button_state = 0;
@@ -388,12 +382,12 @@ void select_control_state() {
   }
   if (button_state == 4) control_state = ENTER_SETTINGS;
   else if (button_state == 3) control_state = STOPWATCH;
-  if (battery_level == GETTING_LOW && current_millis - wake_board_millis < LOW_BATTERY_MESSAGE_DISPLAY_DURATION) {
+  if (batteryReadingManager.battery_level == batteryReadingManager.GETTING_LOW && current_millis - wake_board_millis < LOW_BATTERY_MESSAGE_DISPLAY_DURATION) {
     vfdManager.update_char_array("BA Lo");
   }  
 }
 
-void display_stopwatch() {//display
+void display_stopwatch() {
   if (stopwatch_running) {
     int elapsed_seconds = ((current_time[2] - stopwatch_times[2]) * 3600) + ((current_time[1] - stopwatch_times[1]) * 60) + (current_time[0] - stopwatch_times[0]);
     char elapsed_minutes = elapsed_seconds / 60;
@@ -415,7 +409,7 @@ void display_stopwatch() {//display
   }
 }
 
-void display_hour_minute() {//display
+void display_hour_minute() {
   char hour_digit_1   = current_time[2] / 10;
   char hour_digit_2   = current_time[2] % 10;
   char minute_digit_1 = current_time[1] / 10;
@@ -423,7 +417,7 @@ void display_hour_minute() {//display
   vfdManager.update_char_array(hour_digit_1, hour_digit_2, 1, minute_digit_1, minute_digit_2);
 }
 
-void display_date() {//display
+void display_date() {
   vfdManager.colon_steady = true;
   char month_digit_1   = current_time[5] / 10;
   char month_digit_2   = current_time[5] % 10;
@@ -469,7 +463,7 @@ ISR(PCINT0_vect) {    // wake up
     ignore_next_button_release = true;
     vfdManager.repower = true;
     board_sleeping = false;
-    battery_level = BATTERY_READING;
+    batteryReadingManager.battery_level = batteryReadingManager.BATTERY_READING;
     sleep_disable();
     ADCSRA = adcsra;
     control_state = DISPLAY_TIME;
@@ -511,8 +505,8 @@ void power_board_down(bool permit_wakeup) {//saving data, turning down GPIO pins
   vfdManager.turn_off();
   digitalWrite(POWER_MEASURE_PIN, LOW);
   board_sleeping = true;
-  battery_adc_sum = 0;
-  battery_adc_measurement_count = 0;
+  batteryReadingManager.battery_adc_sum = 0;
+  batteryReadingManager.battery_adc_measurement_count = 0;
   // Set sleep wakeup interrupts
   if (permit_wakeup) {
     PCICR  |= 0b00000001;   // turn on port b for PCINTs
@@ -541,24 +535,6 @@ float read_adc_to_celsius() {//input
     temp -= 0.5;         // Set to 0°C
     temp = temp / 0.01;  // Scale 10 mv / °C
     return temp;
-  }
-}
-
-void read_battery_level() {//input
-  // 5V = 1024, 0V = 0
-  // Battery level: above 3.7V: 0, 3.7-3.5: 1, 3.5-3.3: 2, 3.3- 3
-  if (current_millis - last_battery_read_millis > BATTERY_READ_INTERVAL || last_battery_read_millis == 0) {
-    last_battery_read_millis = current_millis;
-    uint16_t bat_level_adc = analogRead(POWERSENSE_PIN);
-    if (battery_adc_measurement_count < BATTERY_READ_MAX_COUNT){
-      battery_level == BATTERY_READING;
-      battery_adc_sum += bat_level_adc;
-      battery_adc_measurement_count += 1;
-      if (battery_adc_measurement_count == BATTERY_READ_MAX_COUNT) battery_adc_sum = battery_adc_sum / battery_adc_measurement_count;
-    } else if (battery_adc_sum > HIGH_BATTERY_ADC_VALUE)   battery_level = DECENT;
-    else if (battery_adc_sum > MEDIUM_BATTERY_ADC_VALUE)   battery_level = GETTING_LOW;
-    else if (battery_adc_sum > LOW_BATTERY_ADC_VALUE)      battery_level = TOO_LOW_FOR_DISPLAY;
-    else battery_level = INSTANT_TURN_OFF;
   }
 }
 
