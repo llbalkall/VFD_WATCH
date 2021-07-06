@@ -68,6 +68,7 @@ class VFDManager{
         void heating();
         void turn_on();
         void turn_off();
+        void debug_4_digit(float n);
 };
 
 #endif //VFDMANAGER_H_INCLUDED

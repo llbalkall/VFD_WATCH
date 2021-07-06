@@ -371,3 +371,20 @@ void VFDManager::turn_off(){
   digitalWrite(HEAT1_PIN, LOW);
   digitalWrite(HEAT2_PIN, LOW);
 }
+
+void VFDManager::debug_4_digit(float n){
+  if (n>9999.9999){
+    uint8_t n_tenthousands = int(n / 10000) % 10;
+    uint8_t n_thousands = int(n / 1000) % 10;
+    uint8_t n_hundreds = int(n / 100) % 10;
+    uint8_t n_tens     = int(n / 10) % 10;
+    uint8_t n_ones     = int(n)  % 10;
+    update_char_array(n_tenthousands, n_thousands, '1', n_hundreds, n_tens);
+  } else {
+    uint8_t n_thousands = int(n / 1000) % 10;
+    uint8_t n_hundreds = int(n / 100) % 10;
+    uint8_t n_tens     = int(n / 10) % 10;
+    uint8_t n_ones     = int(n)  % 10;
+    update_char_array(n_thousands, n_hundreds, ' ', n_tens, n_ones);
+  }  
+}

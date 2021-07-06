@@ -4,7 +4,8 @@
 #include <avr/sleep.h>
 #include <avr/interrupt.h> 
 #include "functions.h"
-#include "VFDManager.h"
+#include <VFDManager.h>
+#include <DS3231Manager.h>
 
 #define BUTTON_1_PIN 9
 #define BUTTON_2_PIN 10
@@ -108,42 +109,44 @@ void setup() { //input, output init, setting up interrupts, timers
   power_board_down(true);
 }
 
-void debug_4_digit(float n);
-
 void select_control_state();
-void loop() { //the soul, everything
+
+const int BATTERY_READING = 4;
+const int INSTANT_TURN_OFF = 3;
+const int TOO_LOW_FOR_DISPLAY = 2;
+const int GETTING_LOW = 1;
+const int DECENT = 0;
+void loop() {
   current_millis = millis();
-    //read_battery_level();
-    if (battery_level == 4) read_battery_level();
-    else if (battery_level == 3) power_board_down(false);
-    else {
-      if (!board_sleeping && vfdManager.repower) {
-        //digitalWrite(VFD_POWER_SWITCH_PIN, HIGH);
-        vfdManager.turn_on();
-        if (battery_level != 2) digitalWrite(LOAD_PIN, HIGH);//TODO, what is this? VFD-s load pin
-        vfdManager.repower = false;
-        wake_board_millis = current_millis;
-        last_input_millis = current_millis;
-      }
-      // States: 0 - nothing pressed, 1 - #1 pressed and released, 2 - #2 pressed and released
-      // 3 - #1 held, 4 - #2 held, 5 - both held
-      if (battery_level != 2) {
-        update_button_state();
-        read_current_time();
-        select_control_state();
-        //debug_4_digit(8888);
-        //delay(3);
-        vfdManager.show_displayed_character_array(current_millis);
-   
-      }
-      if (battery_level == 1 || battery_level == 2) flash_leds();
-      
-      // End of interactive loop; all necessary input from button has been registered, reset it
-      if (button_state != 0) last_input_millis = current_millis;
-      button_state = 0;
-      vfdManager.colon_steady = false;
-      if (current_millis - last_input_millis > SLEEP_TIMEOUT_INTERVAL && !board_sleeping) power_board_down(true);
+  if (battery_level == BATTERY_READING) read_battery_level();
+  else if (battery_level == INSTANT_TURN_OFF) power_board_down(false);
+  else {
+    if (!board_sleeping && vfdManager.repower) {
+      //digitalWrite(VFD_POWER_SWITCH_PIN, HIGH);
+      vfdManager.turn_on();
+      if (battery_level != TOO_LOW_FOR_DISPLAY) digitalWrite(LOAD_PIN, HIGH);//TODO, what is this? VFD-s load pin
+      vfdManager.repower = false;
+      wake_board_millis = current_millis;
+      last_input_millis = current_millis;
     }
+    // States: 0 - nothing pressed, 1 - #1 pressed and released, 2 - #2 pressed and released
+    // 3 - #1 held, 4 - #2 held, 5 - both held
+    if (battery_level != TOO_LOW_FOR_DISPLAY) {
+      update_button_state();
+      read_current_time();
+      select_control_state();
+      //vfdManager.debug_4_digit(8888);
+      //delay(3);
+      vfdManager.show_displayed_character_array(current_millis);
+    }
+    if (battery_level == GETTING_LOW || battery_level == TOO_LOW_FOR_DISPLAY) flash_leds();
+    
+    // End of interactive loop; all necessary input from button has been registered, reset it
+    if (button_state != 0) last_input_millis = current_millis;
+    button_state = 0;
+    vfdManager.colon_steady = false;
+    if (current_millis - last_input_millis > SLEEP_TIMEOUT_INTERVAL && !board_sleeping) power_board_down(true);
+  }
 }
 
 void update_button_state() {//button input
@@ -385,7 +388,7 @@ void select_control_state() {
   }
   if (button_state == 4) control_state = ENTER_SETTINGS;
   else if (button_state == 3) control_state = STOPWATCH;
-  if (battery_level == 1 && current_millis - wake_board_millis < LOW_BATTERY_MESSAGE_DISPLAY_DURATION) {
+  if (battery_level == GETTING_LOW && current_millis - wake_board_millis < LOW_BATTERY_MESSAGE_DISPLAY_DURATION) {
     vfdManager.update_char_array("BA Lo");
   }  
 }
@@ -466,7 +469,7 @@ ISR(PCINT0_vect) {    // wake up
     ignore_next_button_release = true;
     vfdManager.repower = true;
     board_sleeping = false;
-    battery_level = 4;
+    battery_level = BATTERY_READING;
     sleep_disable();
     ADCSRA = adcsra;
     control_state = DISPLAY_TIME;
@@ -548,14 +551,14 @@ void read_battery_level() {//input
     last_battery_read_millis = current_millis;
     uint16_t bat_level_adc = analogRead(POWERSENSE_PIN);
     if (battery_adc_measurement_count < BATTERY_READ_MAX_COUNT){
-      battery_level == 4;
+      battery_level == BATTERY_READING;
       battery_adc_sum += bat_level_adc;
       battery_adc_measurement_count += 1;
       if (battery_adc_measurement_count == BATTERY_READ_MAX_COUNT) battery_adc_sum = battery_adc_sum / battery_adc_measurement_count;
-    } else if (battery_adc_sum > HIGH_BATTERY_ADC_VALUE)   battery_level = 0;
-    else if (battery_adc_sum > MEDIUM_BATTERY_ADC_VALUE)   battery_level = 1;
-    else if (battery_adc_sum > LOW_BATTERY_ADC_VALUE)      battery_level = 2;
-    else battery_level = 3;
+    } else if (battery_adc_sum > HIGH_BATTERY_ADC_VALUE)   battery_level = DECENT;
+    else if (battery_adc_sum > MEDIUM_BATTERY_ADC_VALUE)   battery_level = GETTING_LOW;
+    else if (battery_adc_sum > LOW_BATTERY_ADC_VALUE)      battery_level = TOO_LOW_FOR_DISPLAY;
+    else battery_level = INSTANT_TURN_OFF;
   }
 }
 
@@ -570,32 +573,4 @@ void flash_leds() {//output
 
 ISR(TIMER1_COMPA_vect){ //timer1 interrupt 50Hz toggles pin 5, 6
   vfdManager.heating();
-}
-
-
-void debug_4_digit(float n){
-  if (n>9999.9999){
-    uint8_t n_tenthousands = int(n / 10000) % 10;
-    uint8_t n_thousands = int(n / 1000) % 10;
-    uint8_t n_hundreds = int(n / 100) % 10;
-    uint8_t n_tens     = int(n / 10) % 10;
-    uint8_t n_ones     = int(n)  % 10;
-    /*vfd_displayed_characters[0] = n_tenthousands;
-    vfd_displayed_characters[1] = n_thousands;
-    vfd_displayed_characters[2] = 1;
-    vfd_displayed_characters[3] = n_hundreds; 
-    vfd_displayed_characters[4] = n_tens;*/
-    vfdManager.update_char_array(n_tenthousands, n_thousands, '1', n_hundreds, n_tens);
-  } else {
-    uint8_t n_thousands = int(n / 1000) % 10;
-    uint8_t n_hundreds = int(n / 100) % 10;
-    uint8_t n_tens     = int(n / 10) % 10;
-    uint8_t n_ones     = int(n)  % 10;
-    /*vfd_displayed_characters[0] = n_thousands;
-    vfd_displayed_characters[1] = n_hundreds;
-    vfd_displayed_characters[2] = ' ';
-    vfd_displayed_characters[3] = n_tens; 
-    vfd_displayed_characters[4] = n_ones;  */
-    vfdManager.update_char_array(n_thousands, n_hundreds, ' ', n_tens, n_ones);
-  }  
 }
