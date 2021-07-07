@@ -6,6 +6,7 @@
 #include "functions.h"
 #include <VFDManager.h>
 #include <DS3231Manager.h>
+#include <SimpleTime.h>
 
 #define BUTTON_1_PIN 9
 #define BUTTON_2_PIN 10
@@ -77,14 +78,15 @@ volatile unsigned long last_input_millis = 0;
 volatile unsigned long wake_board_millis = 0;
 unsigned long current_millis = 0;
 volatile unsigned long last_battery_read_millis = 0;
-int stopwatch_times[4] = {0, 0, 0, 0};
-const uint16_t MONTH_LENGTHS[13] = {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; 
+//int stopwatch_times[4] = {0, 0, 0, 0};
+const uint16_t MONTH_LENGTHS[13] = {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 DS3231Manager ds3231Manager;
 VFDManager vfdManager = VFDManager();
 BatteryReadingManager batteryReadingManager;
 LEDs leds;
 Time current_time;
+Time stop_watch_time;
 
 void setup() { //input, output init, setting up interrupts, timers
   
@@ -222,22 +224,22 @@ void select_control_state() {
       else if (button_state == 2) {
         if (stopwatch_running) {
           stopwatch_running = false;
-          stopwatch_times[3] = current_time.dayOfMonth - stopwatch_times[3];
-          stopwatch_times[2] = current_time.hour - stopwatch_times[2];
-          stopwatch_times[1] = current_time.minute - stopwatch_times[1];
-          stopwatch_times[0] = current_time.second - stopwatch_times[0];
+          stop_watch_time.dayOfMonth = current_time.dayOfMonth - stop_watch_time.dayOfMonth;
+          stop_watch_time.hour = current_time.hour - stop_watch_time.hour;
+          stop_watch_time.minute = current_time.minute - stop_watch_time.minute;
+          stop_watch_time.second = current_time.second - stop_watch_time.second;
         }
-        else if (stopwatch_times[0] == 0 && stopwatch_times[1] == 0 && stopwatch_times[2] == 0) {
+        else if (stop_watch_time.second == 0 && stop_watch_time.minute == 0 && stop_watch_time.hour == 0) {
           stopwatch_running = true;
-          stopwatch_times[0] = current_time.second;
-          stopwatch_times[1] = current_time.minute;
-          stopwatch_times[2] = current_time.hour;
-          stopwatch_times[3] = current_time.dayOfMonth;
+          stop_watch_time.second = current_time.second;
+          stop_watch_time.minute = current_time.minute;
+          stop_watch_time.hour = current_time.hour;
+          stop_watch_time.dayOfMonth = current_time.dayOfMonth;
         } else {
-          stopwatch_times[0] = 0;
-          stopwatch_times[1] = 0;
-          stopwatch_times[2] = 0;
-          stopwatch_times[3] = 0; // day of month
+          stop_watch_time.second = 0;
+          stop_watch_time.minute = 0;
+          stop_watch_time.hour = 0;
+          stop_watch_time.dayOfMonth = 0;
         }
       }
       break;
@@ -260,7 +262,7 @@ void select_control_state() {
         if (setting_value == 24) setting_value = 0;
       }
       else if (button_state == 1) {
-        ds3231Manager.setDS3231time(0, current_time.minute, setting_value, current_time.dayOfWeek, current_time.dayOfMonth, current_time.month, current_time.year);
+        ds3231Manager.set_hour(setting_value, current_time);
         control_state = SETTING_NAME_MINUTE;
       }
       break;
@@ -282,7 +284,7 @@ void select_control_state() {
         if (setting_value == 60) setting_value = 0;
       }
       else if (button_state == 1) {
-        ds3231Manager.setDS3231time(0, setting_value, current_time.hour, current_time.dayOfWeek, current_time.dayOfMonth, current_time.month, current_time.year);
+        ds3231Manager.set_minute(setting_value, current_time);
         control_state = SETTING_NAME_DAY_OF_WEEK;
       }
       break;
@@ -301,7 +303,7 @@ void select_control_state() {
         if (setting_value == 8) setting_value = 1;
       }
       else if (button_state == 1) {
-        ds3231Manager.setDS3231time(current_time.second, current_time.minute, current_time.hour, setting_value, current_time.dayOfMonth, current_time.month, current_time.year);
+        ds3231Manager.set_dayOfWeek(setting_value, current_time);
         control_state = SETTING_NAME_DAY_OF_MONTH;
       }
       break;
@@ -322,7 +324,7 @@ void select_control_state() {
         if (current_time.year % 4 == 0 && current_time.month == 2 && setting_value == 29) setting_value = 1;
       }
       else if (button_state == 1) {
-        ds3231Manager.setDS3231time(current_time.second, current_time.minute, current_time.hour, current_time.dayOfWeek, setting_value, current_time.month, current_time.year);
+        ds3231Manager.set_dayOfMonth(setting_value, current_time);
         control_state = SETTING_NAME_MONTH;
       }
       break;
@@ -341,7 +343,7 @@ void select_control_state() {
         if (setting_value == 13) setting_value = 1;
       }
       else if (button_state == 1) {
-        ds3231Manager.setDS3231time(current_time.second, current_time.minute, current_time.hour, current_time.dayOfWeek, current_time.dayOfMonth, setting_value, current_time.year);
+        ds3231Manager.set_month(setting_value, current_time);
         control_state = SETTING_NAME_YEAR;
       }
       break;
@@ -360,7 +362,7 @@ void select_control_state() {
         if (setting_value == 100) setting_value = 20;
       }
       else if (button_state == 1) {
-        ds3231Manager.setDS3231time(current_time.second, current_time.minute, current_time.hour, current_time.dayOfWeek, current_time.dayOfMonth, current_time.month, setting_value);
+        ds3231Manager.set_year(setting_value, current_time);
         control_state = SETTING_NAME_TEMPERATURE;
       }
       break;
@@ -390,14 +392,14 @@ void select_control_state() {
 
 void display_stopwatch() {
   if (stopwatch_running) {
-    int elapsed_seconds = ((current_time.hour - stopwatch_times[2]) * 3600) + ((current_time.minute - stopwatch_times[1]) * 60) + (current_time.second - stopwatch_times[0]);
+    int elapsed_seconds = ((current_time.hour - stop_watch_time.hour) * 3600) + ((current_time.minute - stop_watch_time.minute) * 60) + (current_time.second - stop_watch_time.second);
     char elapsed_minutes = elapsed_seconds / 60;
     if (elapsed_minutes > 99) elapsed_minutes = 99;
     char remaining_seconds = elapsed_seconds % 60;
     vfdManager.update_char_array(elapsed_minutes / 10, elapsed_minutes % 10, 1, remaining_seconds / 10, remaining_seconds % 10);
-  } else if (stopwatch_times[0] != 0 || stopwatch_times[1] != 0 || stopwatch_times[2] != 0){
+  } else if (stop_watch_time.second != 0 || stop_watch_time.minute != 0 || stop_watch_time.hour != 0){
     vfdManager.colon_steady = true;
-    int elapsed_seconds = (stopwatch_times[2] * 3600) + (stopwatch_times[1] * 60) + stopwatch_times[0];
+    int elapsed_seconds = (stop_watch_time.hour * 3600) + (stop_watch_time.minute * 60) + stop_watch_time.second;
     char elapsed_minutes = elapsed_seconds / 60;
     if (elapsed_minutes > 99) elapsed_minutes = 99;
     char remaining_seconds = elapsed_seconds % 60;
@@ -480,22 +482,22 @@ void power_board_down(bool permit_wakeup) {//saving data, turning down GPIO pins
   // Save current setting data
   switch (control_state) {
     case SETTING_HOUR:
-      ds3231Manager.setDS3231time(0, current_time.minute, setting_value, current_time.dayOfWeek, current_time.dayOfMonth, current_time.month, current_time.year);
+      ds3231Manager.set_hour(setting_value, current_time);
       break;
     case SETTING_MINUTE:
-      ds3231Manager.setDS3231time(0, setting_value, current_time.hour, current_time.dayOfWeek, current_time.dayOfMonth, current_time.month, current_time.year);
+      ds3231Manager.set_minute(setting_value, current_time);
       break;
     case SETTING_DAY_OF_WEEK:
-      ds3231Manager.setDS3231time(current_time.second, current_time.minute, current_time.hour, setting_value, current_time.dayOfMonth, current_time.month, current_time.year);
+      ds3231Manager.set_dayOfWeek(setting_value, current_time);
       break;
     case SETTING_DAY_OF_MONTH:
-      ds3231Manager.setDS3231time(current_time.second, current_time.minute, current_time.hour, current_time.dayOfWeek, setting_value, current_time.month, current_time.year);
+      ds3231Manager.set_dayOfMonth(setting_value, current_time);
       break;
     case SETTING_MONTH:
-      ds3231Manager.setDS3231time(current_time.second, current_time.minute, current_time.hour, current_time.dayOfWeek, current_time.dayOfMonth, setting_value, current_time.year);
+      ds3231Manager.set_month(setting_value, current_time);
       break;
     case SETTING_YEAR:
-      ds3231Manager.setDS3231time(current_time.second, current_time.minute, current_time.hour, current_time.dayOfWeek, current_time.dayOfMonth, current_time.month, setting_value);
+      ds3231Manager.set_year(setting_value, current_time);
       break;
     case SETTING_TEMPERATURE:
       EEPROM.write(temperature_unit_eeprom_address, temperature_unit);

@@ -39,3 +39,28 @@ void DS3231Manager::setDS3231time(unsigned char second, unsigned char minute, un
   Wire.write(decToBcd(year)); // set year (0 to 99)
   Wire.endTransmission();
 }
+
+
+void DS3231Manager::set_minute(uint16_t value, Time time){
+  setDS3231time(0, value, time.hour, time.dayOfWeek, time.dayOfMonth, time.month, time.year);
+} 
+
+void DS3231Manager::set_hour(uint16_t value, Time time){
+  setDS3231time(0, time.minute, value, time.dayOfWeek, time.dayOfMonth, time.month, time.year);
+}  
+
+void DS3231Manager::set_dayOfWeek(uint16_t value, Time time){
+  setDS3231time(time.second, time.minute, time.hour, value, time.dayOfMonth, time.month, time.year);      
+}  
+
+void DS3231Manager::set_dayOfMonth(uint16_t value, Time time){
+  setDS3231time(time.second, time.minute, time.hour, time.dayOfWeek, value, time.month, time.year);
+}  
+
+void DS3231Manager::set_month(uint16_t value, Time time){
+  setDS3231time(time.second, time.minute, time.hour, time.dayOfWeek, time.dayOfMonth, value, time.year);   
+}  
+
+void DS3231Manager::set_year(uint16_t value, Time time){
+  setDS3231time(time.second, time.minute, time.hour, time.dayOfWeek, time.dayOfMonth, time.month, value);  
+} 

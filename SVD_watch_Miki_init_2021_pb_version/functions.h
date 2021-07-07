@@ -17,20 +17,6 @@ class LEDs{
         void turn_off();
 };
 
-class Time{
-    public:  
-    // second, minute, hour, dayOfWeek, dayOfMonth, month, year
-        unsigned char second;
-        unsigned char minute;
-        unsigned char hour;
-        unsigned char dayOfWeek;
-        unsigned char dayOfMonth;
-        unsigned char month;
-        unsigned char year;
-        Time();
-};
-
-
 #define POWERSENSE_PIN A2
 
 class BatteryReadingManager{
