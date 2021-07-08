@@ -19,7 +19,7 @@ Button::Button(int pin/*, ButtonEnum btnenumm*/)
  * PRESSED_AND_RELEASED, HOLDING_STARTS. If the button is released until a treshold 
  * (BUTTON_HOLD_DURATION_MINIMUM) it's PRESSED_AND_RELEASED if it reaches the treshold it's 
  * HOLDING_STARTS. 
- * @return the state of the button, longpress, shortpress, or other not so important
+ * @return the state of the button like longpress, shortpress, or other not so important state
  */
 ButtonState Button::readState()
 {
