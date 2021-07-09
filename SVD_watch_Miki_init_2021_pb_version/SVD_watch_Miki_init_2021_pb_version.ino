@@ -7,6 +7,7 @@
 #include <VFDManager.h>
 #include <DS3231Manager.h>
 #include <SimpleTime.h>
+#include <BatteryReadingManager.h>
 
 #define BUTTON_1_PIN 9
 #define BUTTON_2_PIN 10
@@ -44,9 +45,6 @@ const short COLON_BLINK_PERIOD = 250;          // also ms
 const char NUM_CONTROL_STATES = 20;
 const uint16_t TEMP_READ_INTERVAL = 1000;
 const uint16_t SLEEP_TIMEOUT_INTERVAL = 25000;
-const uint16_t LIGHT_LOW_MAX_VALUE = 100;
-const uint16_t LIGHT_MED_MAX_VALUE = 200;
-const uint16_t LIGHT_READ_INTERVAL = 1000;
 const uint16_t LOW_BATTERY_MESSAGE_DISPLAY_DURATION = 2000;
 const uint16_t LED_FLASH_INTERVAL = 150;
 
@@ -72,8 +70,7 @@ uint16_t setting_value = 0;
 char temperature_unit = ' ';
 const int temperature_unit_eeprom_address = 16;
 unsigned long last_temp_read = 0;
-unsigned long last_light_read = 0;
-char light_level = 0;
+
 volatile unsigned long last_input_millis = 0;
 volatile unsigned long wake_board_millis = 0;
 unsigned long current_millis = 0;
