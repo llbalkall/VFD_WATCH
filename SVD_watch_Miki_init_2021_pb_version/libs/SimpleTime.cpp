@@ -9,3 +9,13 @@ Time::Time(){
   month = 0;
   year = 0;
 }
+
+void Time::setTime(Time t){
+  second = t.second;
+  minute = t.minute;
+  hour = t.hour;
+  dayOfWeek = t.dayOfWeek;
+  dayOfMonth = t.dayOfMonth;
+  month = t.month;
+  year = t.year;
+}

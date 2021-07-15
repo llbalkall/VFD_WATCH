@@ -11,6 +11,7 @@ class Time{
         unsigned char dayOfMonth;
         unsigned char month;
         unsigned char year;
+        void setTime(Time t);
         Time();
 };
 
