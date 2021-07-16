@@ -8,6 +8,7 @@ Context::~Context() {
     delete state_;
     current_time.minute= 10;
     current_millis = 1;
+    stopwatch_running = false;
 }
 
 void Context::TransitionTo(AbstractState *state) {
@@ -18,11 +19,28 @@ void Context::TransitionTo(AbstractState *state) {
 }
 
 void Context::Update() {
-    this->state_->select_control_state();
-}
-
-void Context::Request2() {
-    this->state_->select_control_state();
+    this->state_->update_display();
+    // States: 0 - nothing pressed, 1 - #1 pressed and released, 2 - #2 pressed and released
+    // 3 - #1 held, 4 - #2 held, 5 - both held
+    switch (buttonManager.button_state)
+    {
+    case 1:
+      this->state_->first_pressed_and_released();
+      break;
+    case 2:
+      this->state_->second_pressed_and_released();
+      break;
+    case 3:
+      this->state_->first_held();
+      break;
+    case 4:
+      this->state_->second_held();
+      break;
+    case 5:
+      break;
+    default:
+      break;
+    }
 }
 
 void Context::display_hour_minute() {
@@ -73,4 +91,32 @@ void Context::display_temperature() {//display and get temp
                                   ' ');
   }
   vfdManager.displayed_characters[4] = temperatureManager.temperature_unit;
+}
+
+void Context::display_stopwatch() {
+  if (stopwatch_running) {
+    int elapsed_seconds = ((current_time.hour - stop_watch_time.hour) * 3600) + ((current_time.minute - stop_watch_time.minute) * 60) + (current_time.second - stop_watch_time.second);
+    char elapsed_minutes = elapsed_seconds / 60;
+    if (elapsed_minutes > 99) elapsed_minutes = 99;
+    char remaining_seconds = elapsed_seconds % 60;
+    vfdManager.update_char_array( elapsed_minutes / 10, 
+                                  elapsed_minutes % 10, 
+                                  1, 
+                                  remaining_seconds / 10, 
+                                  remaining_seconds % 10);
+  } else if (stop_watch_time.second != 0 || stop_watch_time.minute != 0 || stop_watch_time.hour != 0){
+    vfdManager.colon_steady = true;
+    int elapsed_seconds = (stop_watch_time.hour * 3600) + (stop_watch_time.minute * 60) + stop_watch_time.second;
+    char elapsed_minutes = elapsed_seconds / 60;
+    if (elapsed_minutes > 99) elapsed_minutes = 99;
+    char remaining_seconds = elapsed_seconds % 60;
+    vfdManager.update_char_array( elapsed_minutes / 10,
+                                  elapsed_minutes % 10,
+                                  1,
+                                  remaining_seconds / 10,
+                                  remaining_seconds % 10);
+  } else {
+    vfdManager.colon_steady = true;
+    vfdManager.update_char_array(0, 0, 1, 0, 0);
+  }
 }
