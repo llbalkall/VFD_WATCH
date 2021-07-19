@@ -1,22 +1,26 @@
 #include "AbstractState.h"
 #include "ConcreteStates.h"
 
-AbstractState::~AbstractState(){
-
+AbstractState::~AbstractState()
+{
 }
 
-void AbstractState::set_context(Context *context) {
-    this->context_ = context;
+void AbstractState::set_context(Commander *commander)
+{
+    this->commander = commander;
 }
 
-void AbstractState::both_held(){
-   this->context_->TransitionTo(new StopWatch);
+void AbstractState::both_held()
+{
+    this->commander->TransitionTo(new StopWatch);
 }
 
-void AbstractState::first_held(){
-    this->context_->TransitionTo(new StopWatch);
+void AbstractState::top_held()
+{
+    this->commander->TransitionTo(new StopWatch);
 }
 
-void AbstractState::second_held(){
-    this->context_->TransitionTo(new EnterSettings);
+void AbstractState::bottom_held()
+{
+    this->commander->TransitionTo(new EnterSettings);
 }

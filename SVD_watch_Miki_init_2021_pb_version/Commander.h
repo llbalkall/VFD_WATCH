@@ -4,26 +4,25 @@
 #include "functions.h"
 #include <VFDManager.h>
 #include <SimpleTime.h>
-#include <VFDManager.h>
 #include <DS3231Manager.h>
 
 class AbstractState;
 
-class Context {
+class Commander
+{
   /**
-   * @var AbstractState A reference to the current state of the Context.
+   * @var AbstractState A reference to the current state of the Commander.
    */
- private:
+private:
   AbstractState *state_;
-  char* days_of_week[7]= {"NN on", "tu E ", "UU Ed", "th u ", "Fr i ", "SA t ", "Su n "};
-  
-  
- public:
+  char *days_of_week[7] = {"NN on", "tu E ", "UU Ed", "th u ", "Fr i ", "SA t ", "Su n "};
+
+public:
   const short MONTH_LENGTHS[13] = {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
   int setting_value = 0;
   bool stopwatch_running;
-  Context(AbstractState *state);
-  ~Context();
+  Commander(AbstractState *state);
+  ~Commander();
   ButtonManager buttonManager;
   VFDManager vfdManager = VFDManager();
   Time current_time;
@@ -31,8 +30,7 @@ class Context {
   TemperatureManager temperatureManager;
   DS3231Manager ds3231Manager;
   unsigned long current_millis;
-  
-  
+
   void TransitionTo(AbstractState *state);
   void Update();
 

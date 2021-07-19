@@ -1,10 +1,10 @@
 #include <Wire.h>
 #include <avr/sleep.h>
-#include <avr/interrupt.h> 
+#include <avr/interrupt.h>
 #include "functions.h"
 #include <SimpleTime.h>
 #include <BatteryReadingManager.h>
-#include "Context.h"
+#include "Commander.h"
 #include "ConcreteStates.h"
 
 #define POWERSENSE_PIN A2
@@ -32,117 +32,143 @@ volatile unsigned long last_battery_read_millis = 0;
 
 BatteryReadingManager batteryReadingManager;
 LEDs leds;
-Context *context = new Context(new DisplayTime);
+Commander *commander = new Commander(new DisplayTime);
 
-void setup() { //input, output init, setting up interrupts, timers
+void setup()
+{ //input, output init, setting up interrupts, timers
   pinMode(POWER_MEASURE_PIN, OUTPUT);
   digitalWrite(POWER_MEASURE_PIN, LOW);
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
   power_board_down(true);
 }
 
-void loop() {
+void loop()
+{
   current_millis = millis();
-  context->current_millis = current_millis;
-  if (batteryReadingManager.battery_level == batteryReadingManager.BATTERY_READING){
-     batteryReadingManager.read_battery_level(current_millis);
-  } else if (batteryReadingManager.battery_level == batteryReadingManager.INSTANT_TURN_OFF) {
+  commander->current_millis = current_millis;
+  if (batteryReadingManager.battery_level == batteryReadingManager.BATTERY_READING)
+  {
+    batteryReadingManager.read_battery_level(current_millis);
+  }
+  else if (batteryReadingManager.battery_level == batteryReadingManager.INSTANT_TURN_OFF)
+  {
     power_board_down(false);
-  } else {
-    if (!board_sleeping && context->vfdManager.repower) {
-      context->vfdManager.turn_on();
-      if (batteryReadingManager.battery_level != batteryReadingManager.TOO_LOW_FOR_DISPLAY){
-        digitalWrite(LOAD_PIN, HIGH);//TODO, what is this? VFD-s load pin
-      } 
-      context->vfdManager.repower = false;
+  }
+  else
+  {
+    if (!board_sleeping && commander->vfdManager.repower)
+    {
+      commander->vfdManager.turn_on();
+      if (batteryReadingManager.battery_level != batteryReadingManager.TOO_LOW_FOR_DISPLAY)
+      {
+        digitalWrite(LOAD_PIN, HIGH); //TODO, what is this? VFD-s load pin
+      }
+      commander->vfdManager.repower = false;
       wake_board_millis = current_millis;
       last_input_millis = current_millis;
     }
-    if (batteryReadingManager.battery_level != batteryReadingManager.TOO_LOW_FOR_DISPLAY) {
-      context->buttonManager.update_button_state();
+    if (batteryReadingManager.battery_level != batteryReadingManager.TOO_LOW_FOR_DISPLAY)
+    {
+      commander->buttonManager.update_button_state();
       read_current_time();
-      context->Update();
-      if (batteryReadingManager.battery_level == batteryReadingManager.GETTING_LOW && current_millis - wake_board_millis < LOW_BATTERY_MESSAGE_DISPLAY_DURATION) {
-        context->vfdManager.update_char_array("BA Lo");
-      }  
+      commander->Update();
+      if (batteryReadingManager.battery_level == batteryReadingManager.GETTING_LOW && current_millis - wake_board_millis < LOW_BATTERY_MESSAGE_DISPLAY_DURATION)
+      {
+        commander->vfdManager.update_char_array("BA Lo");
+      }
       //vfdManager.debug_4_digit(8888);
-      context->vfdManager.show_displayed_character_array(current_millis);
+      commander->vfdManager.show_displayed_character_array(current_millis);
     }
-    if (batteryReadingManager.battery_level == batteryReadingManager.GETTING_LOW || 
-        batteryReadingManager.battery_level == batteryReadingManager.TOO_LOW_FOR_DISPLAY) {
+    if (batteryReadingManager.battery_level == batteryReadingManager.GETTING_LOW ||
+        batteryReadingManager.battery_level == batteryReadingManager.TOO_LOW_FOR_DISPLAY)
+    {
       flash_leds();
     }
     // End of interactive loop; all necessary input from button has been registered, reset it
-    if (context->buttonManager.button_state != 0) last_input_millis = current_millis;
-    context->buttonManager.button_state = 0; 
-    context->vfdManager.colon_steady = false;
-    if (current_millis - last_input_millis > SLEEP_TIMEOUT_INTERVAL && !board_sleeping) power_board_down(true);
+    if (commander->buttonManager.button_state != 0)
+      last_input_millis = current_millis;
+    commander->buttonManager.button_state = 0;
+    commander->vfdManager.colon_steady = false;
+    if (current_millis - last_input_millis > SLEEP_TIMEOUT_INTERVAL && !board_sleeping)
+      power_board_down(true);
   }
 }
 
-void read_current_time() { //DS32131
-  context->ds3231Manager.readDS3231time(&context->current_time.second, &context->current_time.minute, &context->current_time.hour, &context->current_time.dayOfWeek,
-  &context->current_time.dayOfMonth, &context->current_time.month, &context->current_time.year);
+void read_current_time()
+{ //DS32131
+  commander->ds3231Manager.readDS3231time(&commander->current_time.second, &commander->current_time.minute, &commander->current_time.hour, &commander->current_time.dayOfWeek,
+                                          &commander->current_time.dayOfMonth, &commander->current_time.month, &commander->current_time.year);
 }
 
 // This function runs when the board's sleep is interrupted by button 1 press
 // Declare all variables modified by this as "volatile"
-ISR(PCINT0_vect) {    // wake up
+ISR(PCINT0_vect)
+{ // wake up
   // Flag to indicate first button press (waking up the board)
   // This button press should not be processed for normal state changes
-  if (board_sleeping) {
-    context->buttonManager.ignore_next_button_release = true;
-    context->vfdManager.repower = true;
+  if (board_sleeping)
+  {
+    commander->buttonManager.ignore_next_button_release = true;
+    commander->vfdManager.repower = true;
     board_sleeping = false;
     batteryReadingManager.battery_level = batteryReadingManager.BATTERY_READING;
     sleep_disable();
     ADCSRA = adcsra;
-    context->TransitionTo(new DisplayTime);
+    commander->TransitionTo(new DisplayTime);
     last_input_millis = current_millis;
     last_battery_read_millis = 0;
     TIMSK1 |= (1 << OCIE1A);
-    
+
     digitalWrite(POWER_MEASURE_PIN, HIGH);
   }
 }
 
-void power_board_down(bool permit_wakeup) {// turning down GPIO pins, putting the board to sleep
+void power_board_down(bool permit_wakeup)
+{ // turning down GPIO pins, putting the board to sleep
   leds.turn_off();
-  context->vfdManager.turn_off();
+  commander->vfdManager.turn_off();
   digitalWrite(POWER_MEASURE_PIN, LOW);
   board_sleeping = true;
   batteryReadingManager.battery_adc_sum = 0;
   batteryReadingManager.battery_adc_measurement_count = 0;
   // Set sleep wakeup interrupts
-  if (permit_wakeup) {
-    PCICR  |= 0b00000001;   // turn on port b for PCINTs
-    PCMSK0 |= 0b00000100;   // turn on PCINT 2 mask
-  } else {
-    PCICR  = 0b00000000;    // turn off PCINT interrupt
+  if (permit_wakeup)
+  {
+    PCICR |= 0b00000001;  // turn on port b for PCINTs
+    PCMSK0 |= 0b00000100; // turn on PCINT 2 mask
+  }
+  else
+  {
+    PCICR = 0b00000000; // turn off PCINT interrupt
     PCMSK0 = 0b00000000;
   }
-  
-  adcsra = ADCSRA;               //save the ADC Control and Status Register A
-  ADCSRA = 0;                    //disable ADC
-  mcucr1 = MCUCR | _BV(BODS) | _BV(BODSE);  //turn off the brown-out detector
+
+  adcsra = ADCSRA;                         //save the ADC Control and Status Register A
+  ADCSRA = 0;                              //disable ADC
+  mcucr1 = MCUCR | _BV(BODS) | _BV(BODSE); //turn off the brown-out detector
   mcucr2 = mcucr1 & ~_BV(BODSE);
   MCUCR = mcucr1;
   MCUCR = mcucr2;
   // Disable vfd heating timer interrupt
   TIMSK1 = 0;
   sleep_enable();
-  sleep_cpu();                   //go to sleep
+  sleep_cpu(); //go to sleep
 }
 
-void flash_leds() {//output
+void flash_leds()
+{ //output
   int led_millis = current_millis - wake_board_millis;
-  if (led_millis < LOW_BATTERY_MESSAGE_DISPLAY_DURATION && led_millis % (2*LED_FLASH_INTERVAL) < LED_FLASH_INTERVAL) {
+  if (led_millis < LOW_BATTERY_MESSAGE_DISPLAY_DURATION && led_millis % (2 * LED_FLASH_INTERVAL) < LED_FLASH_INTERVAL)
+  {
     leds.turn_on();
-  } else if (led_millis < LOW_BATTERY_MESSAGE_DISPLAY_DURATION) {
+  }
+  else if (led_millis < LOW_BATTERY_MESSAGE_DISPLAY_DURATION)
+  {
     leds.turn_off();
   }
 }
 
-ISR(TIMER1_COMPA_vect){ //timer1 interrupt 50Hz toggles pin 5, 6
-  context->vfdManager.heating();
+ISR(TIMER1_COMPA_vect)
+{ //timer1 interrupt 50Hz toggles pin 5, 6
+  commander->vfdManager.heating();
 }
