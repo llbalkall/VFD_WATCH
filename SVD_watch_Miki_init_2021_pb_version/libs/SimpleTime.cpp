@@ -1,7 +1,6 @@
 #include "SimpleTime.h"
 
-Time::Time()
-{
+Time::Time(){
   second = 0;
   minute = 0;
   hour = 0;
@@ -11,8 +10,7 @@ Time::Time()
   year = 0;
 }
 
-void Time::setTime(Time t)
-{
+void Time::setTime(Time t){
   second = t.second;
   minute = t.minute;
   hour = t.hour;
