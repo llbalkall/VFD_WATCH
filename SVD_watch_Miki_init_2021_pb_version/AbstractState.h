@@ -2,7 +2,6 @@
 #define ABSTRACTSTATE_H
 #include "Context.h"
 
-
 class Context;
 
 class AbstractState
@@ -17,15 +16,7 @@ class AbstractState
   virtual ~AbstractState();
 
   void set_context(Context *context);
-  virtual void update_display() = 0;
-  virtual void first_pressed_and_released() = 0;
-  virtual void second_pressed_and_released() = 0;
-  //virtual void power_down() = 0;
-  void first_held();
-  void second_held();
-  void both_held();
+  virtual void select_control_state() = 0;
 };
-
-
 
 #endif // ABSTRACTSTATE_H
