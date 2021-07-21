@@ -10,7 +10,9 @@ Commander::~Commander()
   delete state_;
   current_time.minute = 10;
   current_millis = 1;
+  wake_board_millis = 0;
   stopwatch_running = false;
+
 }
 
 void Commander::TransitionTo(AbstractState *state)
@@ -138,5 +140,24 @@ void Commander::display_stopwatch()
   {
     vfdManager.colon_steady = true;
     vfdManager.update_char_array(0, 0, 1, 0, 0);
+  }
+}
+
+void Commander::read_current_time()
+{ 
+  ds3231Manager.readDS3231time( &current_time.second, &current_time.minute, &current_time.hour, &current_time.dayOfWeek,
+                                &current_time.dayOfMonth, &current_time.month, &current_time.year);
+}
+
+void Commander::flash_leds()
+{ //output
+  int led_millis = current_millis - wake_board_millis;
+  if (led_millis < LOW_BATTERY_MESSAGE_DISPLAY_DURATION && led_millis % (2 * LED_FLASH_INTERVAL) < LED_FLASH_INTERVAL)
+  {
+    leds.turn_on();
+  }
+  else if (led_millis < LOW_BATTERY_MESSAGE_DISPLAY_DURATION)
+  {
+    leds.turn_off();
   }
 }
