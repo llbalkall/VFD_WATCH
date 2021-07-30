@@ -12,7 +12,10 @@ Commander::~Commander()
   current_millis = 1;
   wake_board_millis = 0;
   stopwatch_running = false;
-
+  alarm_start_millis = 0;
+  alarm_counter = 0;
+  alarm_flag = false ;
+  alarm_sound = false; //save it to EEPROOM
 }
 
 void Commander::TransitionTo(AbstractState *state)
@@ -160,4 +163,39 @@ void Commander::flash_leds()
   {
     leds.turn_off();
   }
+}
+
+void Commander::set_alarm_for_snooze(){
+  digitalWrite(LED_1_PIN, HIGH);
+  int snooze_length = 1;
+  int snooze_hour = 0;
+  int snooze_minute = 0;
+  snooze_minute += current_time.minute + snooze_length;
+  snooze_hour = current_time.hour;
+  if (snooze_minute>59) {
+    snooze_minute -= 60;
+    snooze_hour = current_time.hour + 1;
+    if (snooze_hour>23){
+      snooze_hour -= 24;
+    }
+  } 
+  ds3231Manager.writeRTCRegister(0x07, B00000001) ; //ALARM1 seconds reg
+  ds3231Manager.writeRTCRegister(0x09, decToBcd(snooze_hour)) ; //Setting Alarm1 hour register
+  ds3231Manager.writeRTCRegister(0x08, decToBcd(snooze_minute)) ; //Setting Alarm1 minute register
+  ds3231Manager.writeRTCRegister(0x0A, B10000000); //Setting Alarm1 day register in a way it triggers when the hour and minute match and second but it's set to 0
+  ds3231Manager.writeRTCRegister(0x0e, B00000101);//enable alarm1, disable alarm2
+}
+
+void Commander::alarm(){
+  long t = current_millis - alarm_start_millis;
+  if (alarm_flag){
+    //if (alarm_sound) buzz_for_alarm();
+    if (t> ALARM_DURATION) {
+      alarm_flag = false;
+      ds3231Manager.clearAlarmStatusBits();
+      //buzzer_is_on=false;
+      if (alarm_counter>2){
+      }
+    }
+  } 
 }

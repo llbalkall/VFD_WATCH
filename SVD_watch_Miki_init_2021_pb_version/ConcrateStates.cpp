@@ -7,6 +7,7 @@ void ConcreteStateA::update_display()
 void DisplayTime::update_display()
 {
   this->commander->display_hour_minute();
+  if (this->commander->alarm_flag) this->commander->TransitionTo(new Alarm);
 }
 
 void DisplayTime::top_pressed_and_released()
@@ -128,7 +129,7 @@ void EnterSettings::top_pressed_and_released()
 
 void EnterSettings::bottom_pressed_and_released()
 {
-  this->commander->TransitionTo(new SettingNameHour);
+  this->commander->TransitionTo(new SettingNameAlarm);
 }
 
 void SettingNameHour::update_display()
@@ -401,4 +402,146 @@ void SettingTemperature::bottom_pressed_and_released()
   else
     this->commander->temperatureManager.temperature_unit = 'C';
   this->commander->temperatureManager.save_temp_unit();
+}
+
+void Alarm::update_display()//and this case alarming too;
+{
+  this->commander->display_hour_minute();
+  this->commander->alarm();
+}
+void Alarm::top_pressed_and_released()
+{
+  this->commander->alarm_start_millis = this->commander->current_millis - this->commander->ALARM_DURATION;
+  this->commander->ds3231Manager.clearAlarmStatusBits();
+  //buzzer_is_on=false;
+  this->commander->alarm_counter = 0;
+  this->commander->alarm_flag = false;
+  this->commander->TransitionTo(new DisplayTime);
+}
+void Alarm::bottom_pressed_and_released()
+{
+  this->commander->ds3231Manager.clearAlarmStatusBits();
+  //buzzer_is_on = false;
+  if (this->commander->alarm_counter < 4)
+    this->commander->set_alarm_for_snooze();
+  else
+    this->commander->alarm_counter = 0;
+  this->commander->alarm_flag = false;
+  this->commander->TransitionTo(new SnoozeMessage);
+}
+
+void SnoozeMessage::update_display()
+{
+  this->commander->vfdManager.update_char_array('r',
+                                                'E',
+                                                ' ',
+                                                '*',
+                                                3 - (this->commander->alarm_counter + 3) % 4);
+}
+void SnoozeMessage::top_pressed_and_released()
+{
+  this->commander->TransitionTo(new DisplayTime);
+}
+void SnoozeMessage::bottom_pressed_and_released()
+{
+  this->commander->TransitionTo(new DisplayTime);
+}
+
+void SettingNameAlarm::update_display()
+{
+  this->commander->vfdManager.update_char_array("AL Ar");
+}
+void SettingNameAlarm::top_pressed_and_released()
+{
+  this->commander->setting_value = 0 /*TODO: CURRENT_ALARM MODE*/;
+  this->commander->TransitionTo(new SettingAlarmMode);
+}
+void SettingNameAlarm::bottom_pressed_and_released()
+{
+  this->commander->TransitionTo(new SettingNameHour);
+}
+
+void SettingAlarmMode::update_display()
+{
+  if (this->commander->setting_value == 0)
+  {
+    this->commander->vfdManager.update_char_array("On   ");
+  }
+  else if (this->commander->setting_value == 1)
+  {
+    this->commander->vfdManager.update_char_array("Si LE");
+  }
+  else if (this->commander->setting_value == 2)
+  {
+    this->commander->vfdManager.update_char_array("OF F ");
+  }
+}
+void SettingAlarmMode::top_pressed_and_released()
+{
+  if (this->commander->setting_value == 2 /*We selected off*/)
+  {
+    this->commander->ds3231Manager.writeRTCRegister(0x0e, B00000100); //setting the A2IE bit to zero: disableing the alarm (other pins are good as 0)
+    this->commander->TransitionTo(new DisplayTime);
+  }
+  else
+  {
+    if (this->commander->setting_value == 0)
+      this->commander->alarm_sound = true;
+    if (this->commander->setting_value == 1)
+      this->commander->alarm_sound = false;
+    this->commander->ds3231Manager.writeRTCRegister(0x0e, B00000110); //setting the A2IE bit to one: enableing the alarm
+    this->commander->ds3231Manager.clearAlarmStatusBits();
+    //TODO remember somehow if silent or default alarm is set
+    this->commander->setting_value = bcdToDec(this->commander->ds3231Manager.readRTCRegister(0x0C));
+    this->commander->TransitionTo(new SettingAlarmHour);
+  }
+}
+void SettingAlarmMode::bottom_pressed_and_released()
+{
+  this->commander->setting_value += 1;
+  if (this->commander->setting_value == 3)
+    this->commander->setting_value = 0;
+}
+
+void SettingAlarmHour::update_display()
+{
+  this->commander->vfdManager.update_char_array(this->commander->setting_value / 10,
+                                                this->commander->setting_value % 10,
+                                                ' ',
+                                                ' ',
+                                                ' ');
+}
+
+void SettingAlarmHour::top_pressed_and_released()
+{
+  this->commander->ds3231Manager.writeRTCRegister(0x0C, decToBcd(this->commander->setting_value)); //Setting Alarm2 hour register
+  this->commander->setting_value = bcdToDec(this->commander->ds3231Manager.readRTCRegister(0x0B));
+  this->commander->TransitionTo(new SettingAlarmMinute);
+}
+void SettingAlarmHour::bottom_pressed_and_released()
+{
+  this->commander->setting_value += 1;
+  if (this->commander->setting_value == 24)
+    this->commander->setting_value = 0;
+}
+
+void SettingAlarmMinute::update_display()
+{
+  this->commander->vfdManager.update_char_array(' ',
+                                                ' ',
+                                                ' ',
+                                                this->commander->setting_value / 10,
+                                                this->commander->setting_value % 10);
+}
+void SettingAlarmMinute::top_pressed_and_released()
+{
+  this->commander->ds3231Manager.writeRTCRegister(0x0B, decToBcd(this->commander->setting_value)); //Setting Alarm2 minute register
+  this->commander->ds3231Manager.writeRTCRegister(0x0D, B10000000);               //Setting Alarm2 day register in a way it triggers when the hour and minute match
+  this->commander->TransitionTo(new DisplayTime);
+}
+void SettingAlarmMinute::bottom_pressed_and_released()
+{
+  this->commander->setting_value += 1;
+  if (this->commander->setting_value == 60)
+    this->commander->setting_value = 0;
 }

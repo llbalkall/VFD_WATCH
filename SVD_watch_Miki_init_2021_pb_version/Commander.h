@@ -36,6 +36,12 @@ public:
   unsigned long current_millis;
   unsigned long wake_board_millis;
 
+  unsigned long alarm_start_millis;  
+  const short ALARM_DURATION = 5000;
+  int alarm_counter;
+  bool alarm_flag ;
+  bool alarm_sound;
+
   void TransitionTo(AbstractState *state);
   void Update();
 
@@ -47,6 +53,8 @@ public:
   void display_stopwatch();
   void read_current_time();
   void flash_leds();
+  void set_alarm_for_snooze();
+  void alarm();
 };
 
 #endif // CONTEXT_H

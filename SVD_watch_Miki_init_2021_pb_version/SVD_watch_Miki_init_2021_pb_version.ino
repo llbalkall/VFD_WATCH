@@ -26,7 +26,6 @@ unsigned long current_millis = 0;
 volatile unsigned long last_battery_read_millis = 0;
 
 BatteryReadingManager batteryManager;
-//LEDs leds;
 Commander *commander = new Commander(new DisplayTime);
 
 void setup()
@@ -72,7 +71,7 @@ void loop()
         commander->vfdManager.update_char_array("BA Lo");
       }
       //vfdManager.debug_4_digit(8888);
-      //commander->vfdManager.update_char_array("BB BB");
+      //commander->vfdManager.update_char_aray("BB BB");
       commander->vfdManager.show_displayed_character_array(current_millis);
     }
     if (batteryManager.level == batteryManager.GETTING_LOW ||
@@ -96,7 +95,7 @@ ISR(PCINT0_vect)
 { // wake up
   // Flag to indicate first button press (waking up the board)
   // This button press should not be processed for normal state changes
-  if (board_sleeping)
+  /*if (board_sleeping)
   {
     commander->buttonManager.ignore_next_button_release = true;
     commander->vfdManager.repower = true;
@@ -109,7 +108,7 @@ ISR(PCINT0_vect)
     batteryManager.last_battery_read_millis = 0;
     TIMSK1 |= (1 << OCIE1A);
     digitalWrite(POWER_MEASURE_PIN, HIGH);
-  }
+  }*/
 }
 
 void power_board_down(bool permit_wakeup)
@@ -131,6 +130,9 @@ void power_board_down(bool permit_wakeup)
     PCICR = 0b00000000; // turn off PCINT interrupt
     PCMSK0 = 0b00000000;
   }
+  //Set alarm interrupt
+  PCICR |= (1 << PCIE1);    // set PCIE2 to enable PCMSK2 scan
+  PCMSK1 |= (1 << PCINT11); 
 
   adcsra = ADCSRA;                         //save the ADC Control and Status Register A
   ADCSRA = 0;                              //disable ADC
@@ -142,9 +144,36 @@ void power_board_down(bool permit_wakeup)
   TIMSK1 = 0;
   sleep_enable();
   sleep_cpu(); //go to sleep
+
+
+
+  if (board_sleeping)
+  {
+    //commander->buttonManager.ignore_next_button_release = true;
+    commander->vfdManager.repower = true;
+    board_sleeping = false;
+    batteryManager.level = batteryManager.BATTERY_READING;
+    sleep_disable();
+    ADCSRA = adcsra;
+    last_input_millis = current_millis;
+    batteryManager.last_battery_read_millis = 0;
+    TIMSK1 |= (1 << OCIE1A);
+    digitalWrite(POWER_MEASURE_PIN, HIGH);
+    commander->TransitionTo(new DisplayTime);
+  }
 }
 
 ISR(TIMER1_COMPA_vect)
 { //timer1 interrupt 50Hz toggles pin 5, 6
   commander->vfdManager.heating();
+}
+
+ISR(PCINT1_vect)
+{
+  if (!commander->alarm_flag){
+    commander->alarm_start_millis = commander->current_millis;
+    commander->alarm_flag = true;
+    commander->alarm_counter ++;
+    commander->TransitionTo( new Alarm);
+  }
 }

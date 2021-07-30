@@ -178,4 +178,51 @@ public:
   void bottom_pressed_and_released() override;
 };
 
+class Alarm : public AbstractState
+{
+public:
+  void update_display() override;
+  void top_pressed_and_released() override;
+  void bottom_pressed_and_released() override;
+};
+
+class SnoozeMessage : public AbstractState
+{
+public:
+  void update_display() override;
+  void top_pressed_and_released() override;
+  void bottom_pressed_and_released() override;
+};
+
+
+class SettingNameAlarm : public AbstractState
+{
+public:
+  void update_display() override;
+  void top_pressed_and_released() override;
+  void bottom_pressed_and_released() override;
+};
+
+class SettingAlarmMode : public AbstractState
+{
+public:
+  void update_display() override;
+  void top_pressed_and_released() override;
+  void bottom_pressed_and_released() override;
+};
+
+class SettingAlarmHour : public AbstractState
+{
+public:
+  void update_display() override;
+  void top_pressed_and_released() override;
+  void bottom_pressed_and_released() override;
+};
+class SettingAlarmMinute : public AbstractState
+{
+public:
+  void update_display() override;
+  void top_pressed_and_released() override;
+  void bottom_pressed_and_released() override;
+};
 #endif // CONCRETESTATEA_H
