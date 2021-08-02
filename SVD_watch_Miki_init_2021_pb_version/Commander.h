@@ -1,6 +1,7 @@
 #ifndef CONTEXT_H
 #define CONTEXT_H
 #include "AbstractState.h"
+//#include "ConcreteStates.h"
 #include "functions.h"
 #include <VFDManager.h>
 #include <SimpleTime.h>
@@ -55,7 +56,8 @@ public:
   void read_current_time();
   void flash_leds();
   void set_alarm_for_snooze();
-  void alarm();
+  void alarm_update();
+  void trigger_alarm();
 };
 
 #endif // CONTEXT_H

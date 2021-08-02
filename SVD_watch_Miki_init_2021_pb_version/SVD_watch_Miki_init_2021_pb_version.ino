@@ -90,25 +90,9 @@ void loop()
 }
 
 // This function runs when the board's sleep is interrupted by button 1 press
-// Declare all variables modified by this as "volatile"
 ISR(PCINT0_vect)
-{ // wake up
-  // Flag to indicate first button press (waking up the board)
-  // This button press should not be processed for normal state changes
-  /*if (board_sleeping)
-  {
-    commander->buttonManager.ignore_next_button_release = true;
-    commander->vfdManager.repower = true;
-    board_sleeping = false;
-    batteryManager.level = batteryManager.BATTERY_READING;
-    sleep_disable();
-    ADCSRA = adcsra;
-    commander->TransitionTo(new DisplayTime);
-    last_input_millis = current_millis;
-    batteryManager.last_battery_read_millis = 0;
-    TIMSK1 |= (1 << OCIE1A);
-    digitalWrite(POWER_MEASURE_PIN, HIGH);
-  }*/
+{ 
+  
 }
 
 void power_board_down(bool permit_wakeup)
@@ -170,10 +154,6 @@ ISR(TIMER1_COMPA_vect)
 
 ISR(PCINT1_vect)
 {
-  if (!commander->alarm_flag){
-    commander->alarm_start_millis = commander->current_millis;
-    commander->alarm_flag = true;
-    commander->alarm_counter ++;
-    commander->TransitionTo( new Alarm);
-  }
+  commander->trigger_alarm();
+  //commander->TransitionTo(new Alarm);
 }

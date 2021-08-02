@@ -12,6 +12,7 @@ Commander::~Commander()
   current_millis = 1;
   wake_board_millis = 0;
   stopwatch_running = false;
+  party_mode_time = 0;
   alarm_start_millis = 0;
   alarm_counter = 0;
   alarm_flag = false ;
@@ -188,7 +189,7 @@ void Commander::set_alarm_for_snooze(){
   ds3231Manager.writeRTCRegister(0x0e, B00000101);//enable alarm1, disable alarm2
 }
 
-void Commander::alarm(){
+void Commander::alarm_update(){
   long t = current_millis - alarm_start_millis;
   if (alarm_flag){
     //if (alarm_sound) buzz_for_alarm();
@@ -200,4 +201,13 @@ void Commander::alarm(){
       }
     }
   } 
+}
+
+void Commander::trigger_alarm(){
+  if (!alarm_flag){
+    alarm_start_millis = current_millis;
+    alarm_flag = true;
+    alarm_counter++;
+    //TransitionTo( new Alarm);
+  }
 }

@@ -378,7 +378,7 @@ void SettingNameTemperature::top_pressed_and_released()
 
 void SettingNameTemperature::bottom_pressed_and_released()
 {
-  this->commander->TransitionTo(new SettingNameHour);
+  this->commander->TransitionTo(new SettingNameAlarm);
 }
 
 void SettingTemperature::update_display()
@@ -392,7 +392,7 @@ void SettingTemperature::update_display()
 
 void SettingTemperature::top_pressed_and_released()
 {
-  this->commander->TransitionTo(new SettingNameHour);
+  this->commander->TransitionTo(new SettingNameAlarm);
 }
 
 void SettingTemperature::bottom_pressed_and_released()
@@ -407,7 +407,7 @@ void SettingTemperature::bottom_pressed_and_released()
 void Alarm::update_display()//and this case alarming too;
 {
   this->commander->display_hour_minute();
-  this->commander->alarm();
+  this->commander->alarm_update();
 }
 void Alarm::top_pressed_and_released()
 {
@@ -537,7 +537,7 @@ void SettingAlarmMinute::top_pressed_and_released()
 {
   this->commander->ds3231Manager.writeRTCRegister(0x0B, decToBcd(this->commander->setting_value)); //Setting Alarm2 minute register
   this->commander->ds3231Manager.writeRTCRegister(0x0D, B10000000);               //Setting Alarm2 day register in a way it triggers when the hour and minute match
-  this->commander->TransitionTo(new DisplayTime);
+  this->commander->TransitionTo(new SettingNameHour);
 }
 void SettingAlarmMinute::bottom_pressed_and_released()
 {
