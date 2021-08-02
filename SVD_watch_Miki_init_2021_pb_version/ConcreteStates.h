@@ -225,4 +225,21 @@ public:
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
 };
+
+
+class SettingPartyModeName : public AbstractState
+{
+public:
+  void update_display() override;
+  void top_pressed_and_released() override;
+  void bottom_pressed_and_released() override;
+};
+
+class SettingPartyMode : public AbstractState
+{
+public:
+  void update_display() override;
+  void top_pressed_and_released() override;
+  void bottom_pressed_and_released() override;
+};
 #endif // CONCRETESTATEA_H

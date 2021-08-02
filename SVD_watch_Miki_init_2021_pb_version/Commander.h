@@ -36,6 +36,7 @@ public:
   unsigned long current_millis;
   unsigned long wake_board_millis;
 
+  unsigned long party_mode_time;
   unsigned long alarm_start_millis;  
   const short ALARM_DURATION = 5000;
   int alarm_counter;

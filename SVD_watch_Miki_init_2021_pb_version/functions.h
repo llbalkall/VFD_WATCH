@@ -31,6 +31,7 @@ private:
 public:
     unsigned short button_state;
     bool ignore_next_button_release;
+    char ignore_next_button_releases;
     ButtonManager();
     void update_button_state();
 };

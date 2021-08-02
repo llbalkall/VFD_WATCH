@@ -16,6 +16,7 @@ Commander::~Commander()
   alarm_counter = 0;
   alarm_flag = false ;
   alarm_sound = false; //save it to EEPROOM
+  party_mode_time = 0;
 }
 
 void Commander::TransitionTo(AbstractState *state)
@@ -46,6 +47,7 @@ void Commander::Update()
     this->state_->bottom_held();
     break;
   case 5:
+    this->state_->both_held();
     break;
   default:
     break;

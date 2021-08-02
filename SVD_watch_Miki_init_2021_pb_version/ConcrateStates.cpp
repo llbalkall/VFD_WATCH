@@ -545,3 +545,52 @@ void SettingAlarmMinute::bottom_pressed_and_released()
   if (this->commander->setting_value == 60)
     this->commander->setting_value = 0;
 }
+
+
+void SettingPartyModeName::update_display()
+{
+  this->commander->vfdManager.update_char_array("PA tY");  
+                                     
+}
+
+void SettingPartyModeName::top_pressed_and_released()
+{
+  this->commander->TransitionTo(new SettingPartyMode);
+  this->commander->setting_value = this->commander->party_mode_time;
+}
+
+void SettingPartyModeName::bottom_pressed_and_released()
+{
+  this->commander->TransitionTo(new SettingPartyMode);
+  this->commander->setting_value = this->commander->party_mode_time;
+}
+
+
+
+void SettingPartyMode::update_display()
+{
+  if (this->commander->setting_value == 65) {
+    this->commander->vfdManager.update_char_array("99 99");
+  } else {
+    this->commander->vfdManager.update_char_array(' ',
+                                                    ' ',
+                                                    ' ',
+                                                    this->commander->setting_value / 10,
+                                                    this->commander->setting_value % 10);
+  }                                       
+}
+void SettingPartyMode::top_pressed_and_released()
+{
+  if (this->commander->setting_value == 65) {
+    this->commander->party_mode_time = 9999;
+  } else {
+    this->commander->party_mode_time = this->commander->setting_value;
+  }
+  this->commander->TransitionTo(new DisplayTime);
+}
+void SettingPartyMode::bottom_pressed_and_released()
+{
+  this->commander->setting_value += 5;
+  if (this->commander->setting_value > 65)
+    this->commander->setting_value = 0;
+}

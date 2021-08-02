@@ -46,10 +46,11 @@ ButtonManager::ButtonManager()
   button_hold_counts_2 = 0;
   button_state = 0;
   ignore_next_button_release = false;
+  ignore_next_button_releases = 0;
 }
 
 void ButtonManager::update_button_state()
-{
+{/*
   bool button_1_released = false;
   bool button_2_released = false;
   if (digitalRead(BUTTON_2_PIN) == LOW)
@@ -101,6 +102,52 @@ void ButtonManager::update_button_state()
   {
     button_state = 0;
     ignore_next_button_release = false;
+  }*/
+
+  bool button_1_released = false;
+  bool button_2_released = false;
+  if (digitalRead(BUTTON_2_PIN) == LOW) button_hold_counts_1 += 1;
+  else if (button_hold_counts_1 > 0) {
+    button_1_released = true;
+    button_hold_counts_1 = 0;
+  }
+  if (digitalRead(BUTTON_1_PIN) == LOW) button_hold_counts_2 += 1;
+  else if (button_hold_counts_2 > 0){
+    button_2_released = true;
+    button_hold_counts_2 = 0;
+  }
+  // States: 0 - nothing pressed, 1 - #1 pressed and released, 2 - #2 pressed and released
+  // 3 - #1 held, 4 - #2 held, 5 - both held
+  if (button_hold_counts_1 > BUTTON_HOLD_DURATION_MINIMUM &&
+      button_hold_counts_2 > BUTTON_HOLD_DURATION_MINIMUM) {
+    button_state = 5;
+    ignore_next_button_releases = 2;    
+  } else if (button_hold_counts_2 > BUTTON_HOLD_DURATION_MINIMUM &&
+             button_hold_counts_1 < 1) {
+    if (ignore_next_button_releases == 2){
+      button_state = 5;
+    } else {
+      button_state = 4;
+      ignore_next_button_releases = 1;
+    }
+  } else if (button_hold_counts_1 > BUTTON_HOLD_DURATION_MINIMUM &&
+             button_hold_counts_2 < 1) {
+    if (ignore_next_button_releases == 2){
+      button_state = 5;
+    } else {
+      button_state = 3;
+      ignore_next_button_releases = 1;
+    }
+  } else if (button_2_released && ignore_next_button_releases == 0) {
+    button_state = 2;
+  } else if (button_2_released && ignore_next_button_releases != 0) {
+    button_state = 0;
+    ignore_next_button_releases = 0;
+  } else if (button_1_released && ignore_next_button_releases == 0) {
+    button_state = 1;
+  } else if (button_1_released && ignore_next_button_releases != 0) {
+    button_state = 0; 
+    ignore_next_button_releases = 0;
   }
 }
 

@@ -84,7 +84,7 @@ void loop()
       last_input_millis = current_millis;
     commander->buttonManager.button_state = 0;
     commander->vfdManager.colon_steady = false;
-    if (current_millis - last_input_millis > SLEEP_TIMEOUT_INTERVAL && !board_sleeping)
+    if (current_millis - last_input_millis > SLEEP_TIMEOUT_INTERVAL + commander->party_mode_time * 1000 * 60 && !board_sleeping)
       power_board_down(true);
   }
 }
@@ -149,7 +149,7 @@ void power_board_down(bool permit_wakeup)
 
   if (board_sleeping)
   {
-    //commander->buttonManager.ignore_next_button_release = true;
+    commander->buttonManager.ignore_next_button_release = true;
     commander->vfdManager.repower = true;
     board_sleeping = false;
     batteryManager.level = batteryManager.BATTERY_READING;
