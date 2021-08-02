@@ -48,7 +48,7 @@ class VFDManager
 {
 private:
     const uint16_t cells[5] = {multiplexer_1, multiplexer_2, multiplexer_3, multiplexer_4, multiplexer_5};
-    const short COLON_BLINK_PERIOD = 250;
+    const short COLON_BLINK_PERIOD = 500;
     unsigned char current_cell_id;
     unsigned long colon_millis;
     bool is_outer_needed;

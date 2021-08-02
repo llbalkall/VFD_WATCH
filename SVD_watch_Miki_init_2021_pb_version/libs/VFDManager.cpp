@@ -33,8 +33,43 @@ void VFDManager::set_cell(uint8_t cell_num, char character_to_set, bool include_
   if (cell_num > 4)
     return;
   uint16_t segment_pattern;
+  
+  if (current_cell_id == 0) {
+    if (is_outer_needed){
+      segment_pattern = char_to_segments(character_to_set) & char_to_segments('/'); 
+      delay_needed = true;
+      is_outer_needed = false;
+    } else {
+      segment_pattern = char_to_segments(character_to_set);
+      is_outer_needed = true;
+    }
+  } else if (current_cell_id == 4){
+    if (is_outer_needed){
+      segment_pattern = char_to_segments(character_to_set) & char_to_segments('I'); 
+      delay_needed = true;
+      is_outer_needed = false;
+      if (counter_f <1){
+        delay_needed = true;
+        is_outer_needed = true;
+        counter_f ++;
+      }  else {
+        counter_f = 0;
+        delay_needed = true;
+        is_outer_needed = false;
+      }
+    } else {
+      segment_pattern = char_to_segments(character_to_set);
+      is_outer_needed = true;
+    }
+  } else {
+    segment_pattern = char_to_segments(character_to_set);
+  }
+  //segment_pattern = char_to_segments(character_to_set);
 
-  segment_pattern = char_to_segments(character_to_set);
+
+
+
+  //segment_pattern = char_to_segments(character_to_set);
   segment_pattern |= cells[cell_num];
   if (include_colon)
     segment_pattern |= cells[2];
@@ -59,6 +94,7 @@ void VFDManager::set_cell(uint8_t cell_num, char character_to_set, bool include_
   }
   // Show output to display
   //analogWrite(BLANK_PIN, 100);
+  
   digitalWrite(BLANK_PIN, LOW);
 }
 
@@ -70,7 +106,7 @@ void VFDManager::setup_interrupt_for_heating()
   TCCR1B = 0; // same for TCCR0B
   TCNT1 = 0;  //initialize counter value to 0
   // set compare match register for 50Hz increments
-  OCR1A = 6; //312;// = (16*10^6) / (50*1024) - 1 (must be <65536)
+  OCR1A = 30; //312;// = (16*10^6) / (50*1024) - 1 (must be <65536)
   // turn on CTC mode
   TCCR1B |= (1 << WGM12);
   // Set CS10 and CS12 bits for 1024 prescaler
@@ -82,17 +118,17 @@ void VFDManager::setup_interrupt_for_heating()
 
 void VFDManager::heating()
 {
-  if ((heat_counter >= 8 && heat_counter < 10) || heat_counter >= 18)
+  if ((heat_counter >= 5 && heat_counter < 10) || heat_counter >= 15)
   {
     digitalWrite(HEAT1_PIN, LOW);
     digitalWrite(HEAT2_PIN, LOW);
   }
-  else if (heat_counter < 8)
+  else if (heat_counter < 5)
   {
     digitalWrite(HEAT1_PIN, HIGH);
     digitalWrite(HEAT2_PIN, LOW);
   }
-  else if (heat_counter >= 10 && heat_counter < 18)
+  else if (heat_counter >= 10 && heat_counter < 15)
   {
     digitalWrite(HEAT1_PIN, HIGH);
     digitalWrite(HEAT2_PIN, LOW);
@@ -121,30 +157,41 @@ void VFDManager::update_char_array(char c1, char c2, char c3, char c4, char c5)
   displayed_characters[4] = c5;
 }
 
-void VFDManager::show_displayed_character_array(unsigned long current_millis)
-{ //display
-
-  if (current_cell_id == 2)
-  {
+void VFDManager::show_displayed_character_array(unsigned long current_millis) {//display
+  
+  if (current_cell_id == 2) {
     current_cell_id += 1;
   }
+  
+  if (delay_needed) {
+    //delay(1);
+    delay_needed = false;
+  }
+  //unsigned long current_millis = millis(); //TODO 
   bool include_colon = ((current_millis - colon_millis) < COLON_BLINK_PERIOD || colon_steady) && displayed_characters[2] != ' ';
   // Group the colon light with turning on grid 3, grid 1 if 3 is empty
-  if (displayed_characters[3] == ' ')
-  {
-    if (current_cell_id != 1)
-      include_colon = false;
+  if (displayed_characters[3] == ' ') {
+    if (current_cell_id != 1) include_colon = false;
+  } else if (current_cell_id != 3) include_colon = false;
+  set_cell(current_cell_id, displayed_characters[current_cell_id] & displayed_characters[current_cell_id], include_colon);  
+  
+  /*if (current_cell_id==0) {
+    //delay(0);
+  } else if (current_cell_id == 1) {
+    //delay(0);
+  } else if (current_cell_id == 3) {
+    delay(1);
+  } else if (current_cell_id == 4) {
+    delay(1);
+  }  */
+  //delay(1);
+  if (is_outer_needed && (current_cell_id == 0 || current_cell_id == 4)){
+  } else {
+    current_cell_id ++;
   }
-  else if (current_cell_id != 3)
-    include_colon = false;
-
-  set_cell(current_cell_id, displayed_characters[current_cell_id] & displayed_characters[current_cell_id], include_colon);
-  current_cell_id++;
-
-  if (current_millis - colon_millis > 2 * COLON_BLINK_PERIOD)
-    colon_millis = current_millis;
-  if (current_cell_id == 5)
-    current_cell_id = 0;
+  
+  if (current_millis - colon_millis > 2 * COLON_BLINK_PERIOD) colon_millis = current_millis;
+  if (current_cell_id == 5) current_cell_id = 0;
 }
 
 unsigned int VFDManager::char_to_segments(char inputChar)

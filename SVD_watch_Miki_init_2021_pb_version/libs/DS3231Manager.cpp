@@ -44,6 +44,30 @@ void DS3231Manager::setDS3231time(unsigned char second, unsigned char minute, un
   Wire.endTransmission();
 }
 
+void DS3231Manager::clearAlarmStatusBits(){
+  int buffer = readRTCRegister(0x0f);
+  Wire.beginTransmission(DS3231_I2C_ADDRESS);
+  Wire.write(0x0f);
+  Wire.write(0b11111100 & buffer); 
+  Wire.endTransmission();
+}
+
+int DS3231Manager::readRTCRegister(int address){
+  Wire.beginTransmission(DS3231_I2C_ADDRESS);
+  Wire.write(address);
+  Wire.endTransmission();
+  Wire.requestFrom(DS3231_I2C_ADDRESS, 1);
+  return Wire.read();
+}
+
+//TODO this isn't the place for this
+void DS3231Manager::writeRTCRegister(int address, int value){
+  Wire.beginTransmission(DS3231_I2C_ADDRESS);
+  Wire.write(address);
+  Wire.write(value); 
+  Wire.endTransmission();
+}
+
 void DS3231Manager::set_minute(uint16_t value, Time time)
 {
   setDS3231time(0, value, time.hour, time.dayOfWeek, time.dayOfMonth, time.month, time.year);
