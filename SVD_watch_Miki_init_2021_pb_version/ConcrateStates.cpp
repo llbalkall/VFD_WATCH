@@ -187,7 +187,8 @@ void SettingAlarmMode::bottom_pressed_and_released()
 void SettingAlarmHour::update_display()
 {
   char first_char = this->commander->setting_value / 10;
-  if (first_char == 0) first_char = ' ';
+  if (first_char == 0)
+    first_char = ' ';
   this->commander->vfdManager.update_char_array(first_char,
                                                 this->commander->setting_value % 10,
                                                 ' ',
@@ -211,7 +212,8 @@ void SettingAlarmHour::bottom_pressed_and_released()
 void SettingAlarmMinute::update_display()
 {
   char first_char = this->commander->setting_value / 10;
-  if (first_char == 0) first_char = ' ';
+  if (first_char == 0)
+    first_char = ' ';
   this->commander->vfdManager.update_char_array(' ',
                                                 ' ',
                                                 ' ',
@@ -230,22 +232,6 @@ void SettingAlarmMinute::bottom_pressed_and_released()
   if (this->commander->setting_value == 60)
     this->commander->setting_value = 0;
 }
-
-/*void SettingNameHour::update_display()
-{
-  this->commander->vfdManager.update_char_array("Ho ur");
-}
-
-void SettingNameHour::top_pressed_and_released()
-{
-  this->commander->setting_value = this->commander->current_time.hour;
-  this->commander->TransitionTo(new SettingHour);
-}
-
-void SettingNameHour::bottom_pressed_and_released()
-{
-  this->commander->TransitionTo(new SettingNameMinute);
-}*/
 
 void SettingNameTime::update_display()
 {
@@ -266,7 +252,8 @@ void SettingNameTime::bottom_pressed_and_released()
 void SettingHour::update_display()
 {
   char first_char = this->commander->setting_value / 10;
-  if (first_char == 0) first_char = ' ';
+  if (first_char == 0)
+    first_char = ' ';
   this->commander->vfdManager.update_char_array(first_char,
                                                 this->commander->setting_value % 10,
                                                 ' ',
@@ -287,23 +274,6 @@ void SettingHour::bottom_pressed_and_released()
     this->commander->setting_value = 0;
   this->commander->ds3231Manager.set_hour(this->commander->setting_value, this->commander->current_time);
 }
-
-/*void SettingNameMinute::update_display()
-{
-  this->commander->vfdManager.update_char_array("NN in");
-}
-
-void SettingNameMinute::top_pressed_and_released()
-{
-  this->commander->TransitionTo(new SettingMinute);
-  this->commander->setting_value = this->commander->current_time.minute;
-}
-
-void SettingNameMinute::bottom_pressed_and_released()
-{
-  this->commander->vfdManager.displayed_characters[3] = 'o';
-  this->commander->TransitionTo(new SettingNameDayOfWeek);
-}*/
 
 void SettingMinute::update_display()
 {
@@ -347,7 +317,8 @@ void SettingNameDate::bottom_pressed_and_released()
 void SettingMonth::update_display()
 {
   char first_char = this->commander->setting_value / 10;
-  if (first_char == 0) first_char = ' ';
+  if (first_char == 0)
+    first_char = ' ';
   this->commander->vfdManager.update_char_array(first_char,
                                                 this->commander->setting_value % 10,
                                                 ' ',
@@ -358,6 +329,19 @@ void SettingMonth::update_display()
 void SettingMonth::top_pressed_and_released()
 {
   this->commander->setting_value = this->commander->current_time.dayOfMonth;
+  if (this->commander->current_time.year % 4 == 0 &&
+      this->commander->current_time.month == 2 &&
+      this->commander->setting_value == 29)
+  {
+    //do nothing
+  }
+  else
+  {
+    if (this->commander->setting_value >= (this->commander->MONTH_LENGTHS[this->commander->current_time.month] + 1))
+    {
+      this->commander->setting_value = this->commander->MONTH_LENGTHS[this->commander->current_time.month];
+    }
+  }
   this->commander->TransitionTo(new SettingDayOfMonth);
 }
 
@@ -369,22 +353,11 @@ void SettingMonth::bottom_pressed_and_released()
   this->commander->ds3231Manager.set_month(this->commander->setting_value, this->commander->current_time);
 }
 
-/*void SettingNameDayOfMonth::top_pressed_and_released()
-{
-  this->commander->setting_value = this->commander->current_time.dayOfMonth;
-  this->commander->TransitionTo(new SettingDayOfMonth);
-}
-
-void SettingNameDayOfMonth::bottom_pressed_and_released()
-{
-  this->commander->TransitionTo(new SettingNameMonth);
-  }
-*/
-
 void SettingDayOfMonth::update_display()
 {
   char first_char = this->commander->setting_value / 10;
-  if (first_char == 0) first_char = ' ';
+  if (first_char == 0)
+    first_char = ' ';
   this->commander->vfdManager.update_char_array(' ',
                                                 ' ',
                                                 ' ',
@@ -400,35 +373,23 @@ void SettingDayOfMonth::top_pressed_and_released()
 void SettingDayOfMonth::bottom_pressed_and_released()
 {
   this->commander->setting_value += 1;
-  if (this->commander->setting_value == (this->commander->MONTH_LENGTHS[this->commander->current_time.month] + 1))
-  {
-    this->commander->setting_value = 1;
-  }
+
   // Leap day condition
   if (this->commander->current_time.year % 4 == 0 &&
       this->commander->current_time.month == 2 &&
       this->commander->setting_value == 29)
   {
-    this->commander->setting_value = 1;
+    //do nothing
+  }
+  else
+  {
+    if (this->commander->setting_value >= (this->commander->MONTH_LENGTHS[this->commander->current_time.month] + 1))
+    {
+      this->commander->setting_value = 1;
+    }
   }
   this->commander->ds3231Manager.set_dayOfMonth(this->commander->setting_value, this->commander->current_time);
 }
-
-/*void SettingNameMonth::update_display()
-{
-  this->commander->vfdManager.update_char_array("NN on");
-}
-
-void SettingNameMonth::top_pressed_and_released()
-{
-  this->commander->setting_value = this->commander->current_time.month;
-  this->commander->TransitionTo(new SettingMonth);
-}
-
-void SettingNameMonth::bottom_pressed_and_released()
-{
-  this->commander->TransitionTo(new SettingNameYear);
-}*/
 
 void SettingNameDayOfWeek::update_display()
 {
@@ -632,7 +593,8 @@ void SettingPartyMode::update_display()
   else
   {
     char first_char = this->commander->PARTY_TIMES[this->commander->setting_value] / 10 % 10;
-    if (first_char = 0) first_char = ' '; 
+    if (first_char = 0)
+      first_char = ' ';
     this->commander->vfdManager.update_char_array(' ',
                                                   ' ',
                                                   ' ',

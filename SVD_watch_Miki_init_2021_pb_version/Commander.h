@@ -22,7 +22,7 @@ private:
 public:
   const short LOW_BATTERY_MESSAGE_DISPLAY_DURATION = 2000;
   const short LED_FLASH_INTERVAL = 150;
-  const short MONTH_LENGTHS[13] = {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+  const short MONTH_LENGTHS[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
   const unsigned long PARTY_TIMES[10]  = {0, 1, 3, 5, 10, 15, 30, 45, 60, 9999};
   int setting_value = 0;
   bool stopwatch_running;
