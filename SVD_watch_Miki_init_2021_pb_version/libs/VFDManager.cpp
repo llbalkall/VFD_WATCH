@@ -64,12 +64,7 @@ void VFDManager::set_cell(uint8_t cell_num, char character_to_set, bool include_
   } else {
     segment_pattern = char_to_segments(character_to_set);
   }
-  //segment_pattern = char_to_segments(character_to_set);
 
-
-
-
-  //segment_pattern = char_to_segments(character_to_set);
   segment_pattern |= cells[cell_num];
   if (include_colon)
     segment_pattern |= cells[2];
@@ -199,6 +194,15 @@ unsigned int VFDManager::char_to_segments(char inputChar)
   unsigned int outputSegCode = 0x0000;
   switch (inputChar)
   {
+  case ' ':
+    outputSegCode = 0;
+    break;
+  case '/':
+    outputSegCode = segment_E | segment_F;
+    break;
+  case '*':
+    outputSegCode = segment_A | segment_B | segment_F | segment_G;
+    break;
   case 0:
     outputSegCode = segment_A | segment_B | segment_C | segment_D | segment_E | segment_F;
     break;
@@ -259,8 +263,17 @@ unsigned int VFDManager::char_to_segments(char inputChar)
   case '9':
     outputSegCode = segment_A | segment_B | segment_C | segment_D | segment_F | segment_G;
     break;
-  case ' ':
-    outputSegCode = 0;
+  case 'a':
+    outputSegCode = segment_A | segment_B | segment_C | segment_E | segment_F | segment_G;
+    break;  
+  case 'A':
+    outputSegCode = segment_A | segment_B | segment_C | segment_E | segment_F | segment_G;
+    break;
+  case 'b':
+    outputSegCode = segment_C | segment_D | segment_E | segment_F | segment_G;
+    break;
+  case 'B':
+    outputSegCode = segment_A | segment_B | segment_C | segment_D | segment_E | segment_F | segment_G;
     break;
   case 'c':
     outputSegCode = segment_G | segment_E | segment_D;
@@ -268,17 +281,29 @@ unsigned int VFDManager::char_to_segments(char inputChar)
   case 'C':
     outputSegCode = segment_A | segment_E | segment_F | segment_D;
     break;
-  case 'u':
-    outputSegCode = segment_E | segment_D | segment_C;
+  case 'd':
+    outputSegCode = segment_B | segment_C | segment_D | segment_E | segment_G;
     break;
-  case 'w':
-    outputSegCode = segment_D | segment_C;
+  case 'D':
+    outputSegCode = segment_A |segment_B | segment_C | segment_D | segment_E | segment_F;
     break;
-  case 'U':
-    outputSegCode = segment_E | segment_D | segment_C | segment_B | segment_F;
+  case 'e':
+    outputSegCode = segment_A | segment_B | segment_D | segment_E | segment_F | segment_G;
     break;
-  case 'W':
-    outputSegCode = segment_D | segment_C | segment_B;
+  case 'E':
+    outputSegCode = segment_A | segment_D | segment_E | segment_F | segment_G;
+    break; 
+  case 'f':
+    outputSegCode = segment_A | segment_E | segment_F | segment_G;
+    break;
+  case 'F':
+    outputSegCode = segment_A | segment_E | segment_F | segment_G;
+    break;
+  case 'g':
+    outputSegCode = segment_A | segment_C | segment_D | segment_E | segment_F | segment_G;
+    break;
+  case 'G':
+    outputSegCode = segment_A | segment_C | segment_D | segment_E | segment_F | segment_G;
     break;
   case 'h':
     outputSegCode = segment_F | segment_E | segment_G | segment_C;
@@ -286,20 +311,29 @@ unsigned int VFDManager::char_to_segments(char inputChar)
   case 'H':
     outputSegCode = segment_F | segment_E | segment_G | segment_C | segment_B;
     break;
-  case 'O':
-    outputSegCode = segment_A | segment_B | segment_C | segment_D | segment_E | segment_F;
+  case 'i':
+    outputSegCode = segment_E;
     break;
-  case 'o':
-    outputSegCode = segment_E | segment_G | segment_C | segment_D;
+  case 'I':
+    outputSegCode = segment_B | segment_C;
     break;
-  case 'P':
-    outputSegCode = segment_A | segment_B | segment_E | segment_F | segment_G;
+  case 'j':
+    outputSegCode = segment_A | segment_B | segment_C | segment_D;
     break;
-  case 't':
-    outputSegCode = segment_F | segment_E | segment_D | segment_G;
+  case 'J':
+    outputSegCode = segment_A | segment_B | segment_C | segment_D;
     break;
-  case 'r':
-    outputSegCode = segment_E | segment_G;
+  case 'l':
+    outputSegCode = segment_D | segment_E | segment_F;
+    break;  
+  case 'L':
+    outputSegCode = segment_D | segment_E | segment_F;
+    break;
+  case 'm':
+    outputSegCode = segment_G | segment_C;
+    break;
+  case 'M':
+    outputSegCode = segment_A | segment_C | segment_B;
     break;
   case 'n':
     outputSegCode = segment_E | segment_G | segment_C;
@@ -307,32 +341,59 @@ unsigned int VFDManager::char_to_segments(char inputChar)
   case 'N':
     outputSegCode = segment_E | segment_A | segment_C | segment_B | segment_F;
     break;
-  case 'M':
-    outputSegCode = segment_A | segment_C | segment_B;
+  case 'o':
+    outputSegCode = segment_E | segment_G | segment_C | segment_D;
     break;
-  case 'm':
-    outputSegCode = segment_G | segment_C;
+  case 'O':
+    outputSegCode = segment_A | segment_B | segment_C | segment_D | segment_E | segment_F;
     break;
-  case 'f':
-    outputSegCode = segment_A | segment_E | segment_F | segment_G;
+  case 'p':
+    outputSegCode = segment_A | segment_B | segment_E | segment_F | segment_G;
+    break;  
+  case 'P':
+    outputSegCode = segment_A | segment_B | segment_E | segment_F | segment_G;
     break;
-  case 'F':
-    outputSegCode = segment_A | segment_E | segment_F | segment_G;
+  case 'r':
+    outputSegCode = segment_E | segment_G;
     break;
-  case 'i':
-    outputSegCode = segment_E;
+  case 'R':
+    outputSegCode = segment_A | segment_B | segment_C | segment_E | segment_F | segment_G;
     break;
-  case 'E':
-    outputSegCode = segment_A | segment_D | segment_E | segment_F | segment_G;
-    break;
-  case 'e':
-    outputSegCode = segment_A | segment_B | segment_D | segment_E | segment_F | segment_G;
+  case 's':
+    outputSegCode = segment_A | segment_C | segment_D | segment_F | segment_G;
     break;
   case 'S':
     outputSegCode = segment_A | segment_C | segment_D | segment_F | segment_G;
     break;
-  case 's':
-    outputSegCode = segment_A | segment_C | segment_D | segment_F | segment_G;
+  case 't':
+    outputSegCode = segment_F | segment_E | segment_D | segment_G;
+    break;
+  case 'T':
+    outputSegCode = segment_F | segment_E | segment_D | segment_G;
+    break;
+  case 'u':
+    outputSegCode = segment_E | segment_D | segment_C;
+    break;
+  case 'U':
+    outputSegCode = segment_E | segment_D | segment_C | segment_B | segment_F;
+    break;
+  case 'v':
+    outputSegCode = segment_E | segment_D | segment_C;
+    break;
+  case 'V':
+    outputSegCode = segment_E | segment_D | segment_C | segment_B | segment_F;
+    break;
+  case 'w':
+    outputSegCode = segment_D | segment_C;
+    break;
+  case 'W':
+    outputSegCode = segment_D | segment_C | segment_B;
+    break;
+  case 'x':
+    outputSegCode = segment_F | segment_E | segment_G | segment_C | segment_B;
+    break;
+  case 'X':
+    outputSegCode = segment_F | segment_E | segment_G | segment_C | segment_B;
     break;
   case 'y':
     outputSegCode = segment_B | segment_C | segment_D | segment_F | segment_G;
@@ -340,30 +401,12 @@ unsigned int VFDManager::char_to_segments(char inputChar)
   case 'Y':
     outputSegCode = segment_B | segment_C | segment_F | segment_G;
     break;
-  case 'A':
-    outputSegCode = segment_A | segment_B | segment_C | segment_E | segment_F | segment_G;
+  case 'z':
+    outputSegCode = segment_A | segment_B | segment_G | segment_E | segment_D;
     break;
-  case 'I':
-    outputSegCode = segment_B | segment_C;
-    break;
-  case 'd':
-    outputSegCode = segment_B | segment_C | segment_D | segment_E | segment_G;
-    break;
-  case 'B':
-    outputSegCode = segment_A | segment_B | segment_C | segment_D | segment_E | segment_F | segment_G;
-    break;
-  case 'b':
-    outputSegCode = segment_C | segment_D | segment_E | segment_F | segment_G;
-    break;
-  case 'L':
-    outputSegCode = segment_D | segment_E | segment_F;
-    break;
-  case '/':
-    outputSegCode = segment_E | segment_F;
-    break;
-  case '*':
-    outputSegCode = segment_A | segment_B | segment_F | segment_G;
-    break;
+  case 'Z':
+    outputSegCode = segment_A | segment_B | segment_G | segment_E | segment_D;
+    break;  
     //segment_A | segment_B | segment_C | segment_D | segment_E | segment_F | segment_G;
   }
   return outputSegCode;

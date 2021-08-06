@@ -8,16 +8,22 @@ Commander::Commander(AbstractState *state) : state_(nullptr)
 Commander::~Commander()
 {
   delete state_;
-  current_time.minute = 10;
   current_millis = 1;
   wake_board_millis = 0;
+
   stopwatch_running = false;
-  party_mode_time = 0;
+
   alarm_start_millis = 0;
   alarm_counter = 0;
   alarm_flag = false ;
   alarm_sound = false; //save it to EEPROOM
-  party_mode_time = 0;
+
+  waking_up = false;
+  first_wake_up = true;
+
+  party_mode_is_on = false;
+  party_mode_start_time = 0;
+  party_mode_time_index = 0;
 }
 
 void Commander::TransitionTo(AbstractState *state)
@@ -33,7 +39,15 @@ void Commander::Update()
   this->state_->update_display();
   // States: 0 - nothing pressed, 1 - #1 pressed and released, 2 - #2 pressed and released
   // 3 - #1 held, 4 - #2 held, 5 - both held
-  switch (buttonManager.button_state)
+  if (waking_up) {
+    if (first_wake_up) {
+      buttonManager.first_wake_up_init();
+      first_wake_up = false;
+    }
+    else  buttonManager.wake_up_init();
+    waking_up = false;
+  }
+  switch (buttonManager.state)
   {
   case 1:
     this->state_->top_pressed_and_released();
@@ -57,7 +71,9 @@ void Commander::Update()
 
 void Commander::display_hour_minute()
 {
-  vfdManager.update_char_array(current_time.hour / 10,
+  char first_hour_char = current_time.hour / 10;
+  if (first_hour_char == 0) first_hour_char = ' ';
+  vfdManager.update_char_array(first_hour_char,
                                current_time.hour % 10,
                                0,
                                current_time.minute / 10,
@@ -66,19 +82,24 @@ void Commander::display_hour_minute()
 
 void Commander::display_date()
 {
-  vfdManager.colon_steady = true;
-  vfdManager.update_char_array(current_time.month / 10,
+  //vfdManager.colon_steady = true;
+  char month_first_digit = current_time.month / 10;
+  if (month_first_digit == 0) month_first_digit = ' ';   
+  char day_first_digit = current_time.dayOfMonth / 10;
+  if (day_first_digit == 0) day_first_digit = ' ';   
+  vfdManager.update_char_array(month_first_digit,
                                current_time.month % 10,
-                               1,
-                               current_time.dayOfMonth / 10,
+                               ' ',
+                               day_first_digit,
                                current_time.dayOfMonth % 10);
 }
 
 void Commander::display_seconds()
 { //display
+  vfdManager.colon_steady = true;
   vfdManager.update_char_array(' ',
                                ' ',
-                               ' ',
+                               1,
                                current_time.second / 10,
                                current_time.second % 10);
 }
@@ -132,6 +153,7 @@ void Commander::display_stopwatch()
   {
     vfdManager.colon_steady = true;
     int elapsed_seconds = (stop_watch_time.hour * 3600) + (stop_watch_time.minute * 60) + stop_watch_time.second;
+    //if (stop_watch_time.dayOfMonth + 1 = current_time.dayOfMonth) 
     char elapsed_minutes = elapsed_seconds / 60;
     if (elapsed_minutes > 99)
       elapsed_minutes = 99;
@@ -192,15 +214,14 @@ void Commander::set_alarm_for_snooze(){
 void Commander::alarm_update(){
   long t = current_millis - alarm_start_millis;
   if (alarm_flag){
+    if (alarm_sound) buzzer.alarm(current_millis);
     //if (alarm_sound) buzz_for_alarm();
     if (t> ALARM_DURATION) {
       alarm_flag = false;
       ds3231Manager.clearAlarmStatusBits();
-      //buzzer_is_on=false;
-      if (alarm_counter>2){
-      }
+      buzzer.turn_off();
     }
-  } 
+  }  
 }
 
 void Commander::trigger_alarm(){

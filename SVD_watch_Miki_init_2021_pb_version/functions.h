@@ -25,15 +25,18 @@ public:
 class ButtonManager
 {
 private:
-    int button_hold_counts_1;
-    int button_hold_counts_2;
-    const int BUTTON_HOLD_DURATION_MINIMUM = 1000; // milliseconds
+    
+    int hold_counts_bottom;
+    const int HOLD_DURATION_MINIMUM = 1000; // milliseconds
 public:
-    unsigned short button_state;
-    bool ignore_next_button_release;
-    char ignore_next_button_releases;
+    int hold_counts_top;
+    unsigned short state;
+    bool ignore_next_release;
+    char ignore_next_releases;
     ButtonManager();
-    void update_button_state();
+    void update_state();
+    void wake_up_init();
+    void first_wake_up_init();
 };
 
 #define TEMPERATURE_PIN A6
@@ -55,6 +58,19 @@ public:
     float read_adc_to_celsius(unsigned long current_millis);
     void save_temp_unit();
     char load_temp_unit();
+};
+
+#define BUZZER_PIN 3
+
+class Buzzer
+{
+    private:
+        bool is_on; 
+    public: 
+        Buzzer();
+        void turn_on();
+        void turn_off();
+        void alarm(long millis);
 };
 
 #endif

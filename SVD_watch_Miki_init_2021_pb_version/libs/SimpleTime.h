@@ -5,15 +5,16 @@ class Time
 {
 public:
     // second, minute, hour, dayOfWeek, dayOfMonth, month, year
-    unsigned char second;
-    unsigned char minute;
-    unsigned char hour;
-    unsigned char dayOfWeek;
-    unsigned char dayOfMonth;
-    unsigned char month;
-    unsigned char year;
+    char second;
+    char minute;
+    char hour;
+    char dayOfWeek;
+    char dayOfMonth;
+    char month;
+    char year;
     void setTime(Time t);
     Time();
+    void setToZero();
 };
 
 #endif

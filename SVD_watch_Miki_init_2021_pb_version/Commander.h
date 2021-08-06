@@ -23,6 +23,7 @@ public:
   const short LOW_BATTERY_MESSAGE_DISPLAY_DURATION = 2000;
   const short LED_FLASH_INTERVAL = 150;
   const short MONTH_LENGTHS[13] = {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+  const unsigned long PARTY_TIMES[10]  = {0, 1, 3, 5, 10, 15, 30, 45, 60, 9999};
   int setting_value = 0;
   bool stopwatch_running;
   Commander(AbstractState *state);
@@ -32,17 +33,24 @@ public:
   Time current_time;
   Time stop_watch_time;
   LEDs leds;
+  Buzzer buzzer;
   TemperatureManager temperatureManager;
   DS3231Manager ds3231Manager;
   unsigned long current_millis;
   unsigned long wake_board_millis;
+  bool waking_up;
+  bool first_wake_up;
 
-  unsigned long party_mode_time;
+  
   unsigned long alarm_start_millis;  
   const short ALARM_DURATION = 5000;
   int alarm_counter;
   bool alarm_flag ;
   bool alarm_sound;
+  
+  bool party_mode_is_on;
+  unsigned long party_mode_start_time;
+  unsigned long party_mode_time_index;
 
   void TransitionTo(AbstractState *state);
   void Update();

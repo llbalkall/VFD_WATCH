@@ -12,8 +12,8 @@ void AbstractState::set_context(Commander *commander)
 
 void AbstractState::both_held()
 {
-    this->commander->TransitionTo(new SettingPartyModeName);
-    this->commander->setting_value = this->commander->party_mode_time;
+  this->commander->setting_value = this->commander->party_mode_time_index;
+  this->commander->TransitionTo(new SettingPartyModeName);
 }
 
 void AbstractState::top_held()

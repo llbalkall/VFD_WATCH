@@ -21,3 +21,14 @@ void Time::setTime(Time t)
   month = t.month;
   year = t.year;
 }
+
+void Time::setToZero()
+{
+  second = 0;
+  minute = 0;
+  hour = 0;
+  dayOfWeek = 0;
+  dayOfMonth = 0;
+  month = 0;
+  year = 0;
+}

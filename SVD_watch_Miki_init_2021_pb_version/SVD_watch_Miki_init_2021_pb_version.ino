@@ -27,6 +27,7 @@ volatile unsigned long last_battery_read_millis = 0;
 
 BatteryReadingManager batteryManager;
 Commander *commander = new Commander(new DisplayTime);
+bool first_wake_up = true;
 
 void setup()
 {
@@ -63,7 +64,7 @@ void loop()
     }
     if (batteryManager.level != batteryManager.TOO_LOW_FOR_DISPLAY)
     {
-      commander->buttonManager.update_button_state();
+      commander->buttonManager.update_state();
       commander->read_current_time();
       commander->Update();
       if (batteryManager.level == batteryManager.GETTING_LOW && current_millis - commander->wake_board_millis < commander->LOW_BATTERY_MESSAGE_DISPLAY_DURATION)
@@ -80,19 +81,28 @@ void loop()
       commander->flash_leds();
     }
     // End of interactive loop; all necessary input from button has been registered, reset it
-    if (commander->buttonManager.button_state != 0)
+    if (commander->buttonManager.state != 0)
       last_input_millis = current_millis;
-    commander->buttonManager.button_state = 0;
+    commander->buttonManager.state = 0;
     commander->vfdManager.colon_steady = false;
-    if (current_millis - last_input_millis > SLEEP_TIMEOUT_INTERVAL + commander->party_mode_time * 1000 * 60 && !board_sleeping)
-      power_board_down(true);
+    if (commander->party_mode_is_on)
+    {
+      if (current_millis - last_input_millis > commander->PARTY_TIMES[commander->party_mode_time_index] * 1000 * 60 && !board_sleeping)
+      {
+        power_board_down(true);
+      }
+    }
+    else
+    {
+      if (current_millis - last_input_millis > SLEEP_TIMEOUT_INTERVAL && !board_sleeping)
+        power_board_down(true);
+    }
   }
 }
 
 // This function runs when the board's sleep is interrupted by button 1 press
 ISR(PCINT0_vect)
-{ 
-  
+{
 }
 
 void power_board_down(bool permit_wakeup)
@@ -115,8 +125,8 @@ void power_board_down(bool permit_wakeup)
     PCMSK0 = 0b00000000;
   }
   //Set alarm interrupt
-  PCICR |= (1 << PCIE1);    // set PCIE2 to enable PCMSK2 scan
-  PCMSK1 |= (1 << PCINT11); 
+  PCICR |= (1 << PCIE1); // set PCIE2 to enable PCMSK2 scan
+  PCMSK1 |= (1 << PCINT11);
 
   adcsra = ADCSRA;                         //save the ADC Control and Status Register A
   ADCSRA = 0;                              //disable ADC
@@ -129,11 +139,10 @@ void power_board_down(bool permit_wakeup)
   sleep_enable();
   sleep_cpu(); //go to sleep
 
-
-
   if (board_sleeping)
   {
-    commander->buttonManager.ignore_next_button_release = true;
+    commander->party_mode_is_on = false;
+    commander->waking_up = true;
     commander->vfdManager.repower = true;
     board_sleeping = false;
     batteryManager.level = batteryManager.BATTERY_READING;
@@ -155,5 +164,4 @@ ISR(TIMER1_COMPA_vect)
 ISR(PCINT1_vect)
 {
   commander->trigger_alarm();
-  //commander->TransitionTo(new Alarm);
 }
