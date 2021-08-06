@@ -81,38 +81,6 @@ void DisplayTemperature::bottom_pressed_and_released()
   this->commander->TransitionTo(new DisplayTime);
 }
 
-void StopWatch::update_display()
-{
-  this->commander->display_stopwatch();
-}
-
-void StopWatch::top_pressed_and_released()
-{
-  this->commander->TransitionTo(new DisplayTime);
-}
-
-void StopWatch::bottom_pressed_and_released()
-{
-  if (this->commander->stopwatch_running)
-  {
-    this->commander->stopwatch_running = false;
-    this->commander->stop_watch_time.dayOfMonth = this->commander->current_time.dayOfMonth - this->commander->stop_watch_time.dayOfMonth;
-    this->commander->stop_watch_time.hour = this->commander->current_time.hour - this->commander->stop_watch_time.hour;
-    this->commander->stop_watch_time.minute = this->commander->current_time.minute - this->commander->stop_watch_time.minute;
-    this->commander->stop_watch_time.second = this->commander->current_time.second - this->commander->stop_watch_time.second;
-  }
-  else if (this->commander->stop_watch_time.second == 0 && this->commander->stop_watch_time.minute == 0 && this->commander->stop_watch_time.hour == 0)
-  {
-    this->commander->stopwatch_running = true;
-    this->commander->stop_watch_time.setTime(this->commander->current_time);
-  }
-  else
-  {
-    this->commander->stopwatch_running = false;
-    this->commander->stop_watch_time.setToZero();
-  }
-}
-
 void EnterSettings::update_display()
 {
   this->commander->vfdManager.update_char_array("SE t ");
@@ -592,13 +560,11 @@ void SettingPartyMode::update_display()
   }
   else
   {
-    char first_char = this->commander->PARTY_TIMES[this->commander->setting_value] / 10 % 10;
-    if (first_char = 0)
-      first_char = ' ';
+    
     this->commander->vfdManager.update_char_array(' ',
                                                   ' ',
                                                   ' ',
-                                                  first_char,
+                                                  this->commander->PARTY_TIMES[this->commander->setting_value] / 10 % 10,
                                                   this->commander->PARTY_TIMES[this->commander->setting_value] % 10);
   }
   if (millis() - this->commander->party_mode_start_time > 5000)

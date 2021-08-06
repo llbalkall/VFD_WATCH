@@ -135,10 +135,23 @@ void Commander::display_temperature()
 }
 
 void Commander::display_stopwatch()
-{
-  if (stopwatch_running)
+{ 
+  int elapsed_seconds = stopper.get_elapsed_sec();
+  char elapsed_minutes = elapsed_seconds / 60;
+  if (elapsed_minutes > 99){
+    elapsed_minutes = 99;
+    elapsed_seconds = 59;
+  }
+   
+  char remaining_seconds = elapsed_seconds % 60;
+  vfdManager.update_char_array(elapsed_minutes / 10,
+                                elapsed_minutes % 10,
+                                1,
+                                remaining_seconds / 10,
+                                remaining_seconds % 10);
+  /*if (stopwatch_running)
   {
-    int elapsed_seconds = ((current_time.hour - stop_watch_time.hour) * 3600) + ((current_time.minute - stop_watch_time.minute) * 60) + (current_time.second - stop_watch_time.second);
+    int elapsed_seconds = current_time.difference(stop_watch_time);//((current_time.dayOfMonth - stop_watch_time.dayOfMonth) * 3600 * 24) + (current_time.hour - stop_watch_time.hour) * 3600) + ((current_time.minute - stop_watch_time.minute) * 60) + (current_time.second - stop_watch_time.second);
     char elapsed_minutes = elapsed_seconds / 60;
     if (elapsed_minutes > 99)
       elapsed_minutes = 99;
@@ -168,7 +181,7 @@ void Commander::display_stopwatch()
   {
     vfdManager.colon_steady = true;
     vfdManager.update_char_array(0, 0, 1, 0, 0);
-  }
+  }*/
 }
 
 void Commander::read_current_time()

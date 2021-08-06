@@ -1,6 +1,7 @@
 #ifndef CONCRETESTATEA_H
 #define CONCRETESTATEA_H
 #include "AbstractState.h"
+#include "StopperStates.h"
 
 class ConcreteStateA : public AbstractState
 {
@@ -43,14 +44,6 @@ public:
 };
 
 class DisplayTemperature : public AbstractState
-{
-public:
-  void update_display() override;
-  void top_pressed_and_released() override;
-  void bottom_pressed_and_released() override;
-};
-
-class StopWatch : public AbstractState
 {
 public:
   void update_display() override;
@@ -105,14 +98,6 @@ public:
   void bottom_pressed_and_released() override;
 };
 
-/*class SettingNameHour : public AbstractState
-{
-public:
-  void update_display() override;
-  void top_pressed_and_released() override;
-  void bottom_pressed_and_released() override;
-};*/
-
 class SettingHour : public AbstractState
 {
 public:
@@ -120,14 +105,6 @@ public:
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
 };
-
-/*class SettingNameMinute : public AbstractState
-{
-public:
-  void update_display() override;
-  void top_pressed_and_released() override;
-  void bottom_pressed_and_released() override;
-};*/
 
 class SettingMinute : public AbstractState
 {
@@ -145,14 +122,6 @@ public:
   void bottom_pressed_and_released() override;
 };
 
-/*class SettingNameMonth : public AbstractState
-{
-public:
-  void update_display() override;
-  void top_pressed_and_released() override;
-  void bottom_pressed_and_released() override;
-};*/
-
 class SettingMonth : public AbstractState
 {
 public:
@@ -160,14 +129,6 @@ public:
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
 };
-
-/*class SettingNameDayOfMonth : public AbstractState
-{
-public:
-  void update_display() override;
-  void top_pressed_and_released() override;
-  void bottom_pressed_and_released() override;
-};*/
 
 class SettingDayOfMonth : public AbstractState
 {

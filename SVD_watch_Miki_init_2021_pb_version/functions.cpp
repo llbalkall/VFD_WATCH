@@ -1,6 +1,7 @@
 #include "functions.h"
 #include <Arduino.h>
 
+
 // Function definition
 int add(int a, int b)
 {
@@ -183,6 +184,28 @@ void Buzzer::alarm(long millis){
   } else {
     if (is_on) turn_off();
   }
+}
+
+Stopper::Stopper(){
+  elapsed_sec = 0;
+  state = 0;
+}
+
+void Stopper::set_elapsed_sec(int t){
+  elapsed_sec = t;
+}
+int Stopper::get_elapsed_sec(){
+  return elapsed_sec;
+}
+void Stopper::set_state(int state_){
+  state = state_;
+}
+int Stopper::get_state(){
+  return state;
+}
+
+void Stopper::update_elapsed_sec(Time t){
+  elapsed_sec = t.difference(start_time);
 }
 
 

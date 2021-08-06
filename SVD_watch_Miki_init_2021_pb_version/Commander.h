@@ -34,6 +34,7 @@ public:
   Time stop_watch_time;
   LEDs leds;
   Buzzer buzzer;
+  Stopper stopper;
   TemperatureManager temperatureManager;
   DS3231Manager ds3231Manager;
   unsigned long current_millis;

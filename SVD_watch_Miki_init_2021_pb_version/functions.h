@@ -73,4 +73,20 @@ class Buzzer
         void alarm(long millis);
 };
 
+
+#include <SimpleTime.h>
+class Stopper
+{
+    public:
+        Time start_time;
+        int elapsed_sec;
+        int state; //0:zeros, 1:running, 2:stopped
+        Stopper();
+        void set_elapsed_sec(int t);
+        int get_elapsed_sec();
+        void set_state(int state_);
+        int get_state();
+        void update_elapsed_sec(Time t);
+};
+
 #endif
