@@ -15,6 +15,7 @@ public:
     void setTime(Time t);
     Time();
     void setToZero();
+    long difference(Time t);
 };
 
 #endif

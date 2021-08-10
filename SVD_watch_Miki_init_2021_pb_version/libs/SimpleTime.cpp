@@ -32,3 +32,13 @@ void Time::setToZero()
   month = 0;
   year = 0;
 }
+
+long Time::difference(Time t)
+{
+  long diff;
+  diff += second - t.second 
+        + (minute - t.minute) * 60 
+        + (hour - t.hour) * 60 * 60 
+        + (dayOfMonth - t.dayOfMonth) * 24 * 60 * 60; //when we are between two month at midnight this causes an error
+  return diff;
+}

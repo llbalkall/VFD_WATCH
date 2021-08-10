@@ -27,8 +27,8 @@ void DS3231Manager::readDS3231time(unsigned char *second, unsigned char *minute,
   *year = bcdToDec(Wire.read());
 }
 
-void DS3231Manager::setDS3231time(unsigned char second, unsigned char minute, unsigned char hour, unsigned char dayOfWeek,
-                                  unsigned char dayOfMonth, unsigned char month, unsigned char year)
+  void DS3231Manager::setDS3231time(unsigned char second, unsigned char minute, unsigned char hour, unsigned char dayOfWeek,
+                                    unsigned char dayOfMonth, unsigned char month, unsigned char year)
 { //DS3231
 
   // sets time and date data to DS3231

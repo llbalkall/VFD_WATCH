@@ -47,6 +47,7 @@ void Commander::Update()
     else  buttonManager.wake_up_init();
     waking_up = false;
   }
+  
   switch (buttonManager.state)
   {
   case 1:
@@ -149,39 +150,6 @@ void Commander::display_stopwatch()
                                 1,
                                 remaining_seconds / 10,
                                 remaining_seconds % 10);
-  /*if (stopwatch_running)
-  {
-    int elapsed_seconds = current_time.difference(stop_watch_time);//((current_time.dayOfMonth - stop_watch_time.dayOfMonth) * 3600 * 24) + (current_time.hour - stop_watch_time.hour) * 3600) + ((current_time.minute - stop_watch_time.minute) * 60) + (current_time.second - stop_watch_time.second);
-    char elapsed_minutes = elapsed_seconds / 60;
-    if (elapsed_minutes > 99)
-      elapsed_minutes = 99;
-    char remaining_seconds = elapsed_seconds % 60;
-    vfdManager.update_char_array(elapsed_minutes / 10,
-                                 elapsed_minutes % 10,
-                                 1,
-                                 remaining_seconds / 10,
-                                 remaining_seconds % 10);
-  }
-  else if (stop_watch_time.second != 0 || stop_watch_time.minute != 0 || stop_watch_time.hour != 0)
-  {
-    vfdManager.colon_steady = true;
-    int elapsed_seconds = (stop_watch_time.hour * 3600) + (stop_watch_time.minute * 60) + stop_watch_time.second;
-    //if (stop_watch_time.dayOfMonth + 1 = current_time.dayOfMonth) 
-    char elapsed_minutes = elapsed_seconds / 60;
-    if (elapsed_minutes > 99)
-      elapsed_minutes = 99;
-    char remaining_seconds = elapsed_seconds % 60;
-    vfdManager.update_char_array(elapsed_minutes / 10,
-                                 elapsed_minutes % 10,
-                                 1,
-                                 remaining_seconds / 10,
-                                 remaining_seconds % 10);
-  }
-  else
-  {
-    vfdManager.colon_steady = true;
-    vfdManager.update_char_array(0, 0, 1, 0, 0);
-  }*/
 }
 
 void Commander::read_current_time()
@@ -204,7 +172,6 @@ void Commander::flash_leds()
 }
 
 void Commander::set_alarm_for_snooze(){
-  digitalWrite(LED_1_PIN, HIGH);
   int snooze_length = 1;
   int snooze_hour = 0;
   int snooze_minute = 0;
@@ -228,11 +195,10 @@ void Commander::alarm_update(){
   long t = current_millis - alarm_start_millis;
   if (alarm_flag){
     if (alarm_sound) buzzer.alarm(current_millis);
+    leds.alarm(current_millis);
     //if (alarm_sound) buzz_for_alarm();
     if (t> ALARM_DURATION) {
-      alarm_flag = false;
-      ds3231Manager.clearAlarmStatusBits();
-      buzzer.turn_off();
+      turn_alarm_off();
     }
   }  
 }
@@ -245,3 +211,11 @@ void Commander::trigger_alarm(){
     //TransitionTo( new Alarm);
   }
 }
+
+void Commander::turn_alarm_off(){
+  alarm_flag = false;
+  buzzer.turn_off();
+  leds.turn_off();
+  ds3231Manager.clearAlarmStatusBits();
+}
+

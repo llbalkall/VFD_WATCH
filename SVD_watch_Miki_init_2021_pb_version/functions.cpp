@@ -21,6 +21,7 @@ LEDs::LEDs()
   pinMode(LED_2_PIN, OUTPUT);
   pinMode(LED_3_PIN, OUTPUT);
   pinMode(LED_4_PIN, OUTPUT);
+  turn_off();
 }
 
 void LEDs::turn_on()
@@ -29,6 +30,7 @@ void LEDs::turn_on()
   digitalWrite(LED_2_PIN, HIGH);
   digitalWrite(LED_3_PIN, HIGH);
   digitalWrite(LED_4_PIN, HIGH);
+  is_on = true;
 }
 
 void LEDs::turn_off()
@@ -37,6 +39,15 @@ void LEDs::turn_off()
   digitalWrite(LED_2_PIN, LOW);
   digitalWrite(LED_3_PIN, LOW);
   digitalWrite(LED_4_PIN, LOW);
+  is_on = false;
+}
+
+void LEDs::alarm(unsigned long millis){
+  if (millis % 1000 % 125 < 62 && millis % 1000 < 500){
+    if (!is_on) turn_on();
+  } else {
+    if (is_on) turn_off();
+  }
 }
 
 ButtonManager::ButtonManager()
@@ -63,6 +74,16 @@ void ButtonManager::first_wake_up_init(){
   }
   ignore_next_release = 0;
   state = 0;*/
+  if (hold_counts_top > 0 && hold_counts_bottom > 0){
+  ignore_next_releases = 2;
+  state = 0;
+  } else if (hold_counts_top > 0) {
+    ignore_next_releases = 1;
+    state = 0;
+  }  else if (hold_counts_top == 0 && hold_counts_bottom == 0){
+    ignore_next_releases = 0;
+    state = 0;
+  }
 }
 
 void ButtonManager::wake_up_init(){
@@ -207,7 +228,3 @@ int Stopper::get_state(){
 void Stopper::update_elapsed_sec(Time t){
   elapsed_sec = t.difference(start_time);
 }
-
-
-
-

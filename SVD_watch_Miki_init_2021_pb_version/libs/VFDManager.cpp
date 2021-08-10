@@ -170,16 +170,6 @@ void VFDManager::show_displayed_character_array(unsigned long current_millis) {/
   } else if (current_cell_id != 3) include_colon = false;
   set_cell(current_cell_id, displayed_characters[current_cell_id] & displayed_characters[current_cell_id], include_colon);  
   
-  /*if (current_cell_id==0) {
-    //delay(0);
-  } else if (current_cell_id == 1) {
-    //delay(0);
-  } else if (current_cell_id == 3) {
-    delay(1);
-  } else if (current_cell_id == 4) {
-    delay(1);
-  }  */
-  //delay(1);
   if (is_outer_needed && (current_cell_id == 0 || current_cell_id == 4)){
   } else {
     current_cell_id ++;

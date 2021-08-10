@@ -13,12 +13,14 @@ void AbstractState::set_context(Commander *commander)
 
 void AbstractState::both_held()
 {
-  this->commander->setting_value = this->commander->party_mode_time_index;
-  this->commander->TransitionTo(new SettingPartyModeName);
+    this->commander->turn_alarm_off();
+    this->commander->setting_value = this->commander->party_mode_time_index;
+    this->commander->TransitionTo(new SettingPartyModeName);
 }
 
 void AbstractState::top_held()
 {
+    this->commander->turn_alarm_off();
     switch (this->commander->stopper.get_state())
     {
     case 0:
@@ -38,6 +40,7 @@ void AbstractState::top_held()
 
 void AbstractState::bottom_held()
 {
-    this->commander->TransitionTo(new EnterSettings);
+    this->commander->turn_alarm_off();
     this->commander->stopper.set_state(0);
+    this->commander->TransitionTo(new EnterSettings);
 }

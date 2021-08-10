@@ -12,10 +12,13 @@ float celsius_to_fahrenheit(float celsius);
 
 class LEDs
 {
+    private:
+    bool is_on;
 public:
     LEDs();
     void turn_on();
     void turn_off();
+    void alarm(unsigned long millis);
 };
 
 #include <Arduino.h>

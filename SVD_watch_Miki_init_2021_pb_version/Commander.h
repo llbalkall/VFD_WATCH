@@ -67,6 +67,9 @@ public:
   void set_alarm_for_snooze();
   void alarm_update();
   void trigger_alarm();
+  void turn_alarm_off();
+  void update_buzzer();
+  void update_led();
 };
 
 #endif // CONTEXT_H

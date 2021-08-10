@@ -6,9 +6,13 @@ void ConcreteStateA::update_display()
 
 void DisplayTime::update_display()
 {
+  
   this->commander->display_hour_minute();
-  if (this->commander->alarm_flag)
+  int hour = bcdToDec(this->commander->ds3231Manager.readRTCRegister(0x0C));
+  int minute = bcdToDec(this->commander->ds3231Manager.readRTCRegister(0x0B));
+  if (this->commander->current_time.hour == hour && this->commander->current_time.minute && this->commander->alarm_flag){
     this->commander->TransitionTo(new Alarm);
+  } 
 }
 
 void DisplayTime::top_pressed_and_released()
@@ -484,11 +488,11 @@ void Alarm::update_display() //and this case alarming too;
 void Alarm::top_pressed_and_released()
 {
   this->commander->alarm_start_millis = this->commander->current_millis - this->commander->ALARM_DURATION;
-  this->commander->ds3231Manager.clearAlarmStatusBits();
-  //buzzer_is_on=false;
   this->commander->alarm_counter = 0;
-  this->commander->alarm_flag = false;
-  this->commander->buzzer.turn_off();
+  //this->commander->alarm_flag = false;
+  //this->commander->buzzer.turn_off();
+  //this->commander->ds3231Manager.clearAlarmStatusBits();
+  this->commander->turn_alarm_off();
   this->commander->TransitionTo(new DisplayTime);
 }
 void Alarm::bottom_pressed_and_released()
@@ -501,6 +505,7 @@ void Alarm::bottom_pressed_and_released()
     this->commander->alarm_counter = 0;
   this->commander->alarm_flag = false;
   this->commander->buzzer.turn_off();
+  this->commander->leds.turn_off();
   this->commander->TransitionTo(new SnoozeMessage);
 }
 

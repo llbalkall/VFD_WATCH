@@ -109,6 +109,7 @@ void power_board_down(bool permit_wakeup)
 { // turning down GPIO pins, putting the board to sleep
   commander->leds.turn_off();
   commander->vfdManager.turn_off();
+  commander->turn_alarm_off();
   digitalWrite(POWER_MEASURE_PIN, LOW);
   board_sleeping = true;
   batteryManager.adc_sum = 0;
