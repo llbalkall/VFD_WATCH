@@ -18,6 +18,7 @@ public:
     LEDs();
     void turn_on();
     void turn_off();
+    void animation_bttf(unsigned long millis);
     void alarm(unsigned long millis);
 };
 
@@ -69,11 +70,14 @@ class Buzzer
 {
     private:
         bool is_on; 
+        long last_input_millis;
     public: 
         Buzzer();
         void turn_on();
         void turn_off();
         void alarm(long millis);
+        void set_last_input_millis(long lim);
+        long get_last_input_millis();
 };
 
 
@@ -82,11 +86,12 @@ class Stopper
 {
     public:
         Time start_time;
-        int elapsed_sec;
-        int state; //0:zeros, 1:running, 2:stopped
+        unsigned long elapsed_sec;
+        int state; //0:zeros, 1:running, 2:stopped 
+        bool overflowed;
         Stopper();
-        void set_elapsed_sec(int t);
-        int get_elapsed_sec();
+        void set_elapsed_sec(unsigned long t);
+        unsigned long get_elapsed_sec();
         void set_state(int state_);
         int get_state();
         void update_elapsed_sec(Time t);

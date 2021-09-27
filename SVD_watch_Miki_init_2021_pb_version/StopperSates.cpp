@@ -121,7 +121,7 @@ int BackToTheFutureAnimation::full_line_animation(){
   int animation_state = animation_millis()/(full_animation_duration / 5)  % 5;
   switch (animation_state){
     case 0:
-      this->commander->vfdManager.update_char_array("     ");
+      this->commander->vfdManager.update_char_array("    ");
       break;
     case 1:
       this->commander->vfdManager.update_char_array("=    ");

@@ -114,6 +114,16 @@ public:
   void bottom_pressed_and_released() override;
 };
 
+class SettingSecond : public AbstractState
+{
+  long disp_zero_for_a_little_start_time = 0;
+  bool do_we_want_to_display_zero_for_a_little = false;
+public:
+  void update_display() override;
+  void top_pressed_and_released() override;
+  void bottom_pressed_and_released() override;
+};
+
 class SettingNameDate : public AbstractState
 {
 public:
@@ -211,6 +221,22 @@ public:
 };
 
 class SettingPartyMode : public AbstractState
+{
+public:
+  void update_display() override;
+  void top_pressed_and_released() override;
+  void bottom_pressed_and_released() override;
+};
+
+class SerialNumberName : public AbstractState
+{
+public:
+  void update_display() override;
+  void top_pressed_and_released() override;
+  void bottom_pressed_and_released() override;
+};
+
+class SerialNumber : public AbstractState
 {
 public:
   void update_display() override;

@@ -11,7 +11,8 @@
 #define BUZZER_PIN 3
 #define POWER_MEASURE_PIN A7
 
-const uint16_t SLEEP_TIMEOUT_INTERVAL = 12000;
+const int SLEEP_TIMEOUT_INTERVAL = 12000;
+const int SERIAL_NUMBER = 201;
 
 void power_board_down(bool permit_wakeup);
 //void flash_leds();
@@ -35,6 +36,7 @@ void setup()
   digitalWrite(POWER_MEASURE_PIN, LOW);
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
   power_board_down(true);
+  commander->serial_number = SERIAL_NUMBER;
 }
 
 void loop()
@@ -73,6 +75,7 @@ void loop()
       }
       //vfdManager.debug_4_digit(8888);
       //commander->vfdManager.update_char_aray("BB BB");
+      
       commander->vfdManager.show_displayed_character_array(current_millis);
     }
     if (batteryManager.level == batteryManager.GETTING_LOW ||
@@ -89,13 +92,23 @@ void loop()
     {
       if (current_millis - last_input_millis > commander->PARTY_TIMES[commander->party_mode_time_index] * 1000 * 60 && !board_sleeping)
       {
-        power_board_down(true);
+        if (!commander->alarm_flag)
+        {
+          power_board_down(true);
+        }
       }
     }
     else
     {
-      if (current_millis - last_input_millis > SLEEP_TIMEOUT_INTERVAL && !board_sleeping)
-        power_board_down(true);
+      if (commander->is_second_setting){
+        if (current_millis - last_input_millis > 120000 && !board_sleeping){
+          if (!commander->alarm_flag) power_board_down(true);
+        }
+      } else {
+        if (current_millis - last_input_millis > SLEEP_TIMEOUT_INTERVAL && !board_sleeping){
+          if (!commander->alarm_flag) power_board_down(true);
+        }
+      } 
     }
   }
 }
@@ -110,6 +123,7 @@ void power_board_down(bool permit_wakeup)
   commander->leds.turn_off();
   commander->vfdManager.turn_off();
   commander->turn_alarm_off();
+  commander->is_second_setting = false;
   digitalWrite(POWER_MEASURE_PIN, LOW);
   board_sleeping = true;
   batteryManager.adc_sum = 0;
@@ -118,7 +132,7 @@ void power_board_down(bool permit_wakeup)
   if (permit_wakeup)
   {
     PCICR |= 0b00000001;  // turn on port b for PCINTs
-    PCMSK0 |= 0b00000100; // turn on PCINT 2 mask
+    PCMSK0 |= 0b00000110; // turn on PCINT 2 mask
   }
   else
   {
@@ -145,6 +159,7 @@ void power_board_down(bool permit_wakeup)
     commander->party_mode_is_on = false;
     commander->waking_up = true;
     commander->vfdManager.repower = true;
+    
     board_sleeping = false;
     batteryManager.level = batteryManager.BATTERY_READING;
     sleep_disable();

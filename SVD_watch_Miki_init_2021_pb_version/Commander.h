@@ -25,6 +25,7 @@ public:
   const short MONTH_LENGTHS[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
   const unsigned long PARTY_TIMES[10]  = {0, 1, 3, 5, 10, 15, 30, 45, 60, 9999};
   int setting_value = 0;
+  int serial_number = 0;
   bool stopwatch_running;
   Commander(AbstractState *state);
   ~Commander();
@@ -42,9 +43,10 @@ public:
   bool waking_up;
   bool first_wake_up;
 
+  bool is_second_setting;
   
   unsigned long alarm_start_millis;  
-  const short ALARM_DURATION = 5000;
+  const short ALARM_DURATION = 30000;
   int alarm_counter;
   bool alarm_flag ;
   bool alarm_sound;
@@ -52,6 +54,10 @@ public:
   bool party_mode_is_on;
   unsigned long party_mode_start_time;
   unsigned long party_mode_time_index;
+
+
+  int back_to_the_future_animation_state;
+  long bttf_animation_start_millis;
 
   void TransitionTo(AbstractState *state);
   void Update();

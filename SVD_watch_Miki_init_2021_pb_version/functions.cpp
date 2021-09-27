@@ -50,6 +50,14 @@ void LEDs::alarm(unsigned long millis){
   }
 }
 
+void LEDs::animation_bttf(unsigned long millis){
+  if (millis % 1000 % 125 < 62){
+    if (!is_on) turn_on();
+  } else {
+    if (is_on) turn_off();
+  }
+}
+
 ButtonManager::ButtonManager()
 {
   pinMode(BUTTON_1_PIN, INPUT_PULLUP); // PCINT 1
@@ -62,22 +70,13 @@ ButtonManager::ButtonManager()
 }
 
 void ButtonManager::first_wake_up_init(){
-  /*if (hold_counts_top > 0 && hold_counts_bottom > 0){
-  ignore_next_releases = 2;
-  state = 0;
+  if (hold_counts_top > 0 && hold_counts_bottom > 0){
+    ignore_next_releases = 2;
+    state = 0;
   } else if (hold_counts_top > 0) {
     ignore_next_releases = 1;
     state = 0;
-  }  else if (hold_counts_top == 0 && hold_counts_bottom == 0){
-    ignore_next_releases = 0;
-    state = 0;
-  }
-  ignore_next_release = 0;
-  state = 0;*/
-  if (hold_counts_top > 0 && hold_counts_bottom > 0){
-  ignore_next_releases = 2;
-  state = 0;
-  } else if (hold_counts_top > 0) {
+  } else if (hold_counts_bottom > 0) {
     ignore_next_releases = 1;
     state = 0;
   }  else if (hold_counts_top == 0 && hold_counts_bottom == 0){
@@ -91,6 +90,9 @@ void ButtonManager::wake_up_init(){
   ignore_next_releases = 2;
   state = 0;
   } else if (hold_counts_top > 0) {
+    ignore_next_releases = 1;
+    state = 0;
+  } else if (hold_counts_bottom > 0) {
     ignore_next_releases = 1;
     state = 0;
   }  else if (hold_counts_top == 0 && hold_counts_bottom == 0){
@@ -187,6 +189,7 @@ Buzzer::Buzzer(){
   OCR2B = 9;
   pinMode(BUZZER_PIN, INPUT);
   is_on = false;
+  last_input_millis = 0;
 }
 
 void Buzzer::turn_on(){
@@ -207,20 +210,33 @@ void Buzzer::alarm(long millis){
   }
 }
 
+void Buzzer::set_last_input_millis(long lim){
+  last_input_millis = lim;
+}
+
+long Buzzer::get_last_input_millis(){
+  return last_input_millis;
+}
+
+
 Stopper::Stopper(){
   elapsed_sec = 0;
   state = 0;
+  overflowed = false;
 }
 
-void Stopper::set_elapsed_sec(int t){
+void Stopper::set_elapsed_sec(unsigned long t){
   elapsed_sec = t;
 }
-int Stopper::get_elapsed_sec(){
+
+unsigned long Stopper::get_elapsed_sec(){
   return elapsed_sec;
 }
+
 void Stopper::set_state(int state_){
   state = state_;
 }
+
 int Stopper::get_state(){
   return state;
 }

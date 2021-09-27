@@ -82,7 +82,7 @@ void DisplayTemperature::top_pressed_and_released()
 
 void DisplayTemperature::bottom_pressed_and_released()
 {
-  this->commander->TransitionTo(new DisplayTime);
+  this->commander->TransitionTo(new DisplayDayOfWeek);
 }
 
 void EnterSettings::update_display()
@@ -259,7 +259,8 @@ void SettingMinute::update_display()
 void SettingMinute::top_pressed_and_released()
 {
   //this->commander->TransitionTo(new SettingNameDayOfWeek);
-  this->commander->TransitionTo(new DisplayTime);
+  this->commander->is_second_setting = true;
+  this->commander->TransitionTo(new SettingSecond);
 }
 
 void SettingMinute::bottom_pressed_and_released()
@@ -269,6 +270,38 @@ void SettingMinute::bottom_pressed_and_released()
     this->commander->setting_value = 0;
   this->commander->ds3231Manager.set_minute(this->commander->setting_value, this->commander->current_time);
 }
+
+
+
+void SettingSecond::update_display()
+{
+  if (do_we_want_to_display_zero_for_a_little){
+    this->commander->vfdManager.update_char_array("  100");
+    if (this->commander->current_millis - disp_zero_for_a_little_start_time > 500){
+      do_we_want_to_display_zero_for_a_little = false;
+      this->commander->TransitionTo(new DisplayTime);
+    }
+  } else {
+    this->commander->display_seconds();
+  }
+}
+
+void SettingSecond::top_pressed_and_released()
+{
+  bottom_pressed_and_released();
+}
+
+void SettingSecond::bottom_pressed_and_released()
+{
+  if (!do_we_want_to_display_zero_for_a_little){
+    this->commander->ds3231Manager.set_minute(this->commander->setting_value, this->commander->current_time);
+    this->commander->is_second_setting = false;
+    do_we_want_to_display_zero_for_a_little = true;
+    disp_zero_for_a_little_start_time = this->commander->current_millis; 
+  }
+}
+
+
 
 void SettingNameDate::update_display()
 {
@@ -415,11 +448,16 @@ void SettingNameYear::bottom_pressed_and_released()
 
 void SettingYear::update_display()
 {
-  this->commander->vfdManager.update_char_array('2',
-                                                '0',
-                                                ' ',
-                                                this->commander->setting_value / 10,
-                                                this->commander->setting_value % 10);
+  
+  if (this->commander->setting_value == 100)
+    this->commander->vfdManager.update_char_array("19 85");
+  else {
+    this->commander->vfdManager.update_char_array('2',
+                                                  '0',
+                                                  ' ',
+                                                  this->commander->setting_value / 10,
+                                                  this->commander->setting_value % 10);
+  }
 }
 
 void SettingYear::top_pressed_and_released()
@@ -430,10 +468,11 @@ void SettingYear::top_pressed_and_released()
 void SettingYear::bottom_pressed_and_released()
 {
   this->commander->setting_value += 1;
-  if (this->commander->setting_value == 100)
-    this->commander->setting_value = 20;
+  if (this->commander->setting_value > 100)
+    this->commander->setting_value = 0;
   this->commander->ds3231Manager.set_year(this->commander->setting_value, this->commander->current_time);
 }
+
 
 void SettingNameTemperature::update_display()
 {
@@ -447,7 +486,7 @@ void SettingNameTemperature::top_pressed_and_released()
 
 void SettingNameTemperature::bottom_pressed_and_released()
 {
-  this->commander->TransitionTo(new SettingNameAlarm);
+  this->commander->TransitionTo(new SerialNumberName);
 }
 
 void SettingTemperature::update_display()
@@ -489,23 +528,16 @@ void Alarm::top_pressed_and_released()
 {
   this->commander->alarm_start_millis = this->commander->current_millis - this->commander->ALARM_DURATION;
   this->commander->alarm_counter = 0;
-  //this->commander->alarm_flag = false;
-  //this->commander->buzzer.turn_off();
-  //this->commander->ds3231Manager.clearAlarmStatusBits();
   this->commander->turn_alarm_off();
   this->commander->TransitionTo(new DisplayTime);
 }
 void Alarm::bottom_pressed_and_released()
 {
-  this->commander->ds3231Manager.clearAlarmStatusBits();
-  //buzzer_is_on = false;
+  this->commander->turn_alarm_off();
   if (this->commander->alarm_counter < 4)
     this->commander->set_alarm_for_snooze();
   else
     this->commander->alarm_counter = 0;
-  this->commander->alarm_flag = false;
-  this->commander->buzzer.turn_off();
-  this->commander->leds.turn_off();
   this->commander->TransitionTo(new SnoozeMessage);
 }
 
@@ -515,7 +547,8 @@ void SnoozeMessage::update_display()
                                                 'E',
                                                 ' ',
                                                 '*',
-                                                3 - (this->commander->alarm_counter + 3) % 4);
+                                                /*3 - (this->commander->alarm_counter + 3) % 4*/
+                                                (4 - this->commander->alarm_counter) % 4);
 }
 void SnoozeMessage::top_pressed_and_released()
 {
@@ -577,7 +610,7 @@ void SettingPartyMode::update_display()
 }
 void SettingPartyMode::top_pressed_and_released()
 {
-  //this->commander->party_mode_time_index = this->commander->setting_value;
+
   this->commander->TransitionTo(new DisplayTime);
 }
 void SettingPartyMode::bottom_pressed_and_released()
@@ -591,4 +624,33 @@ void SettingPartyMode::bottom_pressed_and_released()
   else
     this->commander->party_mode_is_on = true;
   this->commander->party_mode_time_index = this->commander->setting_value;
+}
+
+
+void SerialNumberName::update_display()
+{
+  this->commander->vfdManager.update_char_array("SE rN");
+}
+void SerialNumberName::top_pressed_and_released()
+{
+  this->commander->TransitionTo(new SerialNumber);
+}
+void SerialNumberName::bottom_pressed_and_released()
+{
+  
+  this->commander->TransitionTo(new SettingNameAlarm);
+}
+
+void SerialNumber::update_display()
+{
+  //this->commander->vfdManager.update_char_array("00 01");
+  this->commander->vfdManager.debug_4_digit(commander->serial_number);
+}
+void SerialNumber::top_pressed_and_released()
+{
+  this->commander->TransitionTo(new DisplayTime);
+}
+void SerialNumber::bottom_pressed_and_released()
+{
+  this->commander->TransitionTo(new DisplayTime);
 }

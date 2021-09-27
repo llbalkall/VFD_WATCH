@@ -21,9 +21,14 @@ Commander::~Commander()
   waking_up = false;
   first_wake_up = true;
 
+  is_second_setting = false;
+
   party_mode_is_on = false;
   party_mode_start_time = 0;
   party_mode_time_index = 0;
+
+  back_to_the_future_animation_state = 0;
+  bttf_animation_start_millis = 0;
 }
 
 void Commander::TransitionTo(AbstractState *state)
@@ -47,7 +52,15 @@ void Commander::Update()
     else  buttonManager.wake_up_init();
     waking_up = false;
   }
-  
+  /*if (buttonManager.state > 0){
+    buzzer.set_last_input_millis(current_millis);
+  }
+  if (current_millis - buzzer.get_last_input_millis() < 10) {
+    buzzer.turn_on();
+  } else if (current_millis - buzzer.get_last_input_millis() > 50 && 
+            current_millis - buzzer.get_last_input_millis() < 60){
+    buzzer.turn_off();
+  }*/
   switch (buttonManager.state)
   {
   case 1:
@@ -137,9 +150,13 @@ void Commander::display_temperature()
 
 void Commander::display_stopwatch()
 { 
-  int elapsed_seconds = stopper.get_elapsed_sec();
+  unsigned long elapsed_seconds = stopper.get_elapsed_sec();
   char elapsed_minutes = elapsed_seconds / 60;
-  if (elapsed_minutes > 99){
+  if (elapsed_minutes > 99 && !stopper.overflowed){
+    stopper.overflowed = true;
+  }
+
+  if (stopper.overflowed) {
     elapsed_minutes = 99;
     elapsed_seconds = 59;
   }
@@ -213,9 +230,8 @@ void Commander::trigger_alarm(){
 }
 
 void Commander::turn_alarm_off(){
+  ds3231Manager.clearAlarmStatusBits();
   alarm_flag = false;
   buzzer.turn_off();
   leds.turn_off();
-  ds3231Manager.clearAlarmStatusBits();
 }
-
