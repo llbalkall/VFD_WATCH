@@ -63,6 +63,9 @@ void loop()
       commander->vfdManager.repower = false;
       commander->wake_board_millis = current_millis;
       last_input_millis = current_millis;
+      if (batteryManager.level == batteryManager.TOO_LOW_FOR_DISPLAY){
+        commander->vfdManager.turn_off();
+      }
     }
     if (batteryManager.level != batteryManager.TOO_LOW_FOR_DISPLAY)
     {
@@ -73,6 +76,7 @@ void loop()
       {
         commander->vfdManager.update_char_array("BA Lo");
       }
+      //commander->vfdManager.debug_4_digit(batteryManager.adc_sum+batteryManager.level*1000);
       //vfdManager.debug_4_digit(8888);
       //commander->vfdManager.update_char_aray("BB BB");
       

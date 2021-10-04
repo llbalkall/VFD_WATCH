@@ -135,16 +135,17 @@ void SettingAlarmMode::top_pressed_and_released()
   {
     this->commander->ds3231Manager.writeRTCRegister(0x0e, B00000100); //setting the A2IE bit to zero: disableing the alarm (other pins are good as 0)
     this->commander->TransitionTo(new DisplayTime);
+    this->commander->ds3231Manager.is_alarm_turned_off = true;
   }
   else
   {
+    this->commander->ds3231Manager.is_alarm_turned_off = false;
     if (this->commander->setting_value == 0)
       this->commander->alarm_sound = true;
     if (this->commander->setting_value == 1)
       this->commander->alarm_sound = false;
     this->commander->ds3231Manager.writeRTCRegister(0x0e, B00000110); //setting the A2IE bit to one: enableing the alarm
     this->commander->ds3231Manager.clearAlarmStatusBits();
-    //TODO remember somehow if silent or default alarm is set
     this->commander->setting_value = bcdToDec(this->commander->ds3231Manager.readRTCRegister(0x0C));
     this->commander->TransitionTo(new SettingAlarmHour);
   }
@@ -214,6 +215,7 @@ void SettingNameTime::top_pressed_and_released()
 {
   this->commander->setting_value = this->commander->current_time.hour;
   this->commander->TransitionTo(new SettingHour);
+  //this->commander->ds3231Manager.writeRTCRegister(0x0e, B00000100); //setting the A2IE bit to zero: disableing the alarm (other pins are good as 0)
 }
 
 void SettingNameTime::bottom_pressed_and_released()
@@ -235,6 +237,7 @@ void SettingHour::update_display()
 
 void SettingHour::top_pressed_and_released()
 {
+  this->commander->ds3231Manager.set_hour(this->commander->setting_value, this->commander->current_time);
   this->commander->setting_value = this->commander->current_time.minute;
   this->commander->TransitionTo(new SettingMinute);
 }
@@ -244,7 +247,6 @@ void SettingHour::bottom_pressed_and_released()
   this->commander->setting_value += 1;
   if (this->commander->setting_value == 24)
     this->commander->setting_value = 0;
-  this->commander->ds3231Manager.set_hour(this->commander->setting_value, this->commander->current_time);
 }
 
 void SettingMinute::update_display()
@@ -259,6 +261,7 @@ void SettingMinute::update_display()
 void SettingMinute::top_pressed_and_released()
 {
   //this->commander->TransitionTo(new SettingNameDayOfWeek);
+  this->commander->ds3231Manager.set_minute(this->commander->setting_value, this->commander->current_time);
   this->commander->is_second_setting = true;
   this->commander->TransitionTo(new SettingSecond);
 }
@@ -268,8 +271,7 @@ void SettingMinute::bottom_pressed_and_released()
   this->commander->setting_value += 1;
   if (this->commander->setting_value == 60)
     this->commander->setting_value = 0;
-  this->commander->ds3231Manager.set_minute(this->commander->setting_value, this->commander->current_time);
-}
+ }
 
 
 
@@ -299,6 +301,9 @@ void SettingSecond::bottom_pressed_and_released()
     do_we_want_to_display_zero_for_a_little = true;
     disp_zero_for_a_little_start_time = this->commander->current_millis; 
   }
+  /*if ( this->commander->ds3231Manager.is_alarm_turned_off){
+    this->commander->ds3231Manager.writeRTCRegister(0x0e, B00000110); //setting the A2IE bit to one: enableing the alarm
+  }*/
 }
 
 
