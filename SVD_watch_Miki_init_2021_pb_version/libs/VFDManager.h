@@ -71,6 +71,7 @@ public:
     void turn_on();
     void turn_off();
     void debug_4_digit(float n);
+    void disp_number(int n);
 };
 
 #endif //VFDMANAGER_H_INCLUDED

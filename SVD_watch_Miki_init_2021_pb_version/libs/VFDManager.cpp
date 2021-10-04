@@ -187,6 +187,9 @@ unsigned int VFDManager::char_to_segments(char inputChar)
   case ' ':
     outputSegCode = 0;
     break;
+  case '=':
+    outputSegCode = segment_A | segment_D;
+    break;
   case '/':
     outputSegCode = segment_E | segment_F;
     break;
@@ -437,4 +440,14 @@ void VFDManager::debug_4_digit(float n)
     uint8_t n_ones = int(n) % 10;
     update_char_array(n_thousands, n_hundreds, ' ', n_tens, n_ones);
   }
+}
+
+void VFDManager::disp_number(int n)//for animation
+{
+  uint8_t n_thousands = int(n / 1000) % 10;
+  uint8_t n_hundreds = int(n / 100) % 10;
+  uint8_t n_tens = int(n / 10) % 10;
+  uint8_t n_ones = int(n) % 10;
+  update_char_array(n_thousands, n_hundreds, '1', n_tens, ' ');
+  colon_steady = true;
 }

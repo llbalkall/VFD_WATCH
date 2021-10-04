@@ -7,7 +7,10 @@
 
 class DS3231Manager
 {
+    
 public:
+    bool is_alarm_turned_off = true;
+
     void readDS3231time(unsigned char *second, unsigned char *minute, unsigned char *hour,
                         unsigned char *dayOfWeek, unsigned char *dayOfMonth, unsigned char *month, unsigned char *year);
     void setDS3231time(unsigned char second, unsigned char minute, unsigned char hour, unsigned char dayOfWeek,
