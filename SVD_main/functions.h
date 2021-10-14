@@ -20,6 +20,8 @@ public:
     void turn_off();
     void animation_bttf(unsigned long millis);
     void alarm(unsigned long millis);
+    void activate();
+    void deactivate();
 };
 
 #include <Arduino.h>
@@ -62,6 +64,8 @@ public:
     float read_adc_to_celsius(unsigned long current_millis);
     void save_temp_unit();
     char load_temp_unit();
+    void activate();
+    void deactivate();
 };
 
 #define BUZZER_PIN 3
@@ -78,6 +82,8 @@ class Buzzer
         void alarm(long millis);
         void set_last_input_millis(long lim);
         long get_last_input_millis();
+        void activate();
+        void deactivate();
 };
 
 

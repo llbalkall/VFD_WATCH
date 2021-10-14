@@ -22,7 +22,7 @@ public:
   //virtual void power_down() = 0;
   void top_held();
   void bottom_held();
-  void both_held();
+  virtual void both_held();
 };
 
 #endif // ABSTRACTSTATE_H

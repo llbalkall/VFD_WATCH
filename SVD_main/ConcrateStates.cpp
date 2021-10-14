@@ -100,6 +100,11 @@ void EnterSettings::bottom_pressed_and_released()
   this->commander->TransitionTo(new SettingNameAlarm);
 }
 
+void EnterSettings::bottom_held(){
+  this->commander->TransitionTo(new SerialNumberName);
+}
+
+
 void SettingNameAlarm::update_display()
 {
   this->commander->vfdManager.update_char_array("AL Ar");

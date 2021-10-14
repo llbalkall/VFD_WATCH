@@ -76,6 +76,9 @@ public:
   void turn_alarm_off();
   void update_buzzer();
   void update_led();
+
+  void deactivate_pins();
+  void activate_pins();
 };
 
 #endif // CONTEXT_H

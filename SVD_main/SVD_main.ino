@@ -7,8 +7,6 @@
 #include "Commander.h"
 #include "ConcreteStates.h"
 
-#define POWERSENSE_PIN A2
-#define BUZZER_PIN 3
 #define POWER_MEASURE_PIN A7
 
 const int SLEEP_TIMEOUT_INTERVAL = 12000;
@@ -128,6 +126,8 @@ void power_board_down(bool permit_wakeup)
   commander->vfdManager.turn_off();
   commander->turn_alarm_off();
   commander->is_second_setting = false;
+  commander->deactivate_pins();
+  
   digitalWrite(POWER_MEASURE_PIN, LOW);
   board_sleeping = true;
   batteryManager.adc_sum = 0;
@@ -160,10 +160,11 @@ void power_board_down(bool permit_wakeup)
 
   if (board_sleeping)
   {
+    commander->activate_pins();
     commander->party_mode_is_on = false;
     commander->waking_up = true;
     commander->vfdManager.repower = true;
-    
+
     board_sleeping = false;
     batteryManager.level = batteryManager.BATTERY_READING;
     sleep_disable();

@@ -1,0 +1,33 @@
+        backlight3 pb0 
+        button2 pb1
+        button1 pb2
+mosi    pb3
+miso    pb4
+sck     pb5
+
+        backlight2  pc0
+        backlight1  pc1
+powersense  pc2
+i2c.int/sqw pc3
+i2c.sda     pc4
+i2c.scl     pc5
+reset       pc6
+
+        vfd.data    pd0
+        vfd.load    pd1
+        vfd.clk     pd2
+        buzzer      pd3
+        vfd.blank   pd4
+        vfd.heat2   pd5
+        vfd.heat1   pd6
+        backlight4  pd7
+
+        powerswitch pe0
+
+temperature     pe2
+powermeasure    pe3
+
+avcc
+aref
+
+

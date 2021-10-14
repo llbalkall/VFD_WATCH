@@ -237,3 +237,20 @@ void Commander::turn_alarm_off(){
   buzzer.turn_off();
   leds.turn_off();
 }
+
+void Commander::activate_pins(){
+  leds.activate();      //leds
+  temperatureManager.activate();
+  buzzer.activate();
+  vfdManager.activate();
+  //powersense
+  //i2c 
+  
+}
+
+void Commander::deactivate_pins(){
+  leds.deactivate();
+  temperatureManager.deactivate();
+  buzzer.deactivate();
+  vfdManager.deactivate();
+}

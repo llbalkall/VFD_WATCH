@@ -58,6 +58,14 @@ void LEDs::animation_bttf(unsigned long millis){
   }
 }
 
+void LEDs::activate(){
+  turn_off();
+}
+
+void LEDs::deactivate(){
+  turn_off();
+}
+
 ButtonManager::ButtonManager()
 {
   pinMode(BUTTON_1_PIN, INPUT_PULLUP); // PCINT 1
@@ -181,6 +189,15 @@ char TemperatureManager::load_temp_unit()
   return EEPROM.read(temperature_unit_eeprom_address);
 }
 
+void TemperatureManager::activate(){
+  pinMode(TEMPERATURE_PIN, INPUT);
+}
+
+void TemperatureManager::deactivate(){
+  pinMode(TEMPERATURE_PIN, OUTPUT);
+  digitalWrite(TEMPERATURE_PIN, LOW);
+}
+
 
 Buzzer::Buzzer(){
   TCCR2A = _BV(COM2A0) | _BV(COM2B1) | _BV(WGM21) | _BV(WGM20);
@@ -218,6 +235,24 @@ long Buzzer::get_last_input_millis(){
   return last_input_millis;
 }
 
+void Buzzer::activate(){
+  TCCR2A = _BV(COM2A0) | _BV(COM2B1) | _BV(WGM21) | _BV(WGM20);
+  TCCR2B = _BV(WGM22) | _BV(CS22) | _BV(CS20);
+  OCR2A = 18;
+  OCR2B = 9;
+  pinMode(BUZZER_PIN, INPUT);
+  is_on = false;
+  last_input_millis = 0;
+}
+
+void Buzzer::deactivate(){
+  TCCR2A = 0;
+  TCCR2B = 0;
+  OCR2A = 0;
+  OCR2B = 0;
+  pinMode(TEMPERATURE_PIN, OUTPUT);
+  digitalWrite(TEMPERATURE_PIN, LOW);
+}
 
 Stopper::Stopper(){
   elapsed_sec = 0;
