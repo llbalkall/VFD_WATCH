@@ -13,6 +13,8 @@ void AbstractState::set_context(Commander *commander)
 
 void AbstractState::both_held()
 {
+    this->commander->are_we_in_settings = false;
+    this->commander->botton_press_is_to_serial= false;
     this->commander->turn_alarm_off();
     this->commander->setting_value = this->commander->party_mode_time_index;
     this->commander->TransitionTo(new SettingPartyModeName);
@@ -20,6 +22,8 @@ void AbstractState::both_held()
 
 void AbstractState::top_held()
 {
+    this->commander->are_we_in_settings = false;
+    this->commander->botton_press_is_to_serial= false;
     if (this->commander->current_time.year == 100){
         this->commander->TransitionTo(new BackToTheFutureAnimation);
         this->commander->back_to_the_future_animation_state = 0;
@@ -44,10 +48,15 @@ void AbstractState::top_held()
     }
 }
     
-
 void AbstractState::bottom_held()
 {
-    this->commander->turn_alarm_off();
-    this->commander->stopper.set_state(0);
-    this->commander->TransitionTo(new EnterSettings);
+    if (this->commander->botton_press_is_to_serial){
+        this->commander->TransitionTo(new SerialNumberName);
+    } else {
+      this->commander->are_we_in_settings = true;
+      this->commander->botton_press_is_to_serial = false;
+        this->commander->turn_alarm_off();
+        this->commander->stopper.set_state(0);
+        this->commander->TransitionTo(new EnterSettings);
+    }
 }

@@ -10,7 +10,7 @@
 #define POWER_MEASURE_PIN A7
 
 const int SLEEP_TIMEOUT_INTERVAL = 12000;
-const int SERIAL_NUMBER = 201;
+const int SERIAL_NUMBER = 2;
 
 void power_board_down(bool permit_wakeup);
 //void flash_leds();
@@ -122,6 +122,7 @@ ISR(PCINT0_vect)
 
 void power_board_down(bool permit_wakeup)
 { // turning down GPIO pins, putting the board to sleep
+  commander->are_we_in_settings = false;
   commander->leds.turn_off();
   commander->vfdManager.turn_off();
   commander->turn_alarm_off();

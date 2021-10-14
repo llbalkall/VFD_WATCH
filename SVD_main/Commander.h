@@ -59,6 +59,9 @@ public:
   int back_to_the_future_animation_state;
   long bttf_animation_start_millis;
 
+  bool are_we_in_settings;
+  bool botton_press_is_to_serial;
+
   void TransitionTo(AbstractState *state);
   void Update();
 

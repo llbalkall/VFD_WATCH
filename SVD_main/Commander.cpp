@@ -29,6 +29,9 @@ Commander::~Commander()
 
   back_to_the_future_animation_state = 0;
   bttf_animation_start_millis = 0;
+  
+  are_we_in_settings = false;
+  botton_press_is_to_serial = false;
 }
 
 void Commander::TransitionTo(AbstractState *state)
@@ -63,6 +66,11 @@ void Commander::Update()
   }*/
   switch (buttonManager.state)
   {
+  case 0:
+    if(are_we_in_settings && !botton_press_is_to_serial){
+      botton_press_is_to_serial = true;
+    }
+    break;
   case 1:
     this->state_->top_pressed_and_released();
     break;

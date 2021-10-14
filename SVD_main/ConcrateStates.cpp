@@ -6,7 +6,8 @@ void ConcreteStateA::update_display()
 
 void DisplayTime::update_display()
 {
-  
+  this->commander->are_we_in_settings = false;
+    this->commander->botton_press_is_to_serial= false;
   this->commander->display_hour_minute();
   int hour = bcdToDec(this->commander->ds3231Manager.readRTCRegister(0x0C));
   int minute = bcdToDec(this->commander->ds3231Manager.readRTCRegister(0x0B));
@@ -99,11 +100,6 @@ void EnterSettings::bottom_pressed_and_released()
 {
   this->commander->TransitionTo(new SettingNameAlarm);
 }
-
-void EnterSettings::bottom_held(){
-  this->commander->TransitionTo(new SerialNumberName);
-}
-
 
 void SettingNameAlarm::update_display()
 {
@@ -639,7 +635,7 @@ void SettingPartyMode::bottom_pressed_and_released()
 
 void SerialNumberName::update_display()
 {
-  this->commander->vfdManager.update_char_array("SE rN");
+  this->commander->vfdManager.update_char_array("SE rn");
 }
 void SerialNumberName::top_pressed_and_released()
 {
