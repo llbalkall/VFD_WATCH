@@ -14,11 +14,12 @@ protected:
 
 public:
   virtual ~AbstractState();
-
+  unsigned long startmillis=0;
   void set_context(Commander *commander);
   virtual void update_display() = 0;
   virtual void top_pressed_and_released() = 0;
   virtual void bottom_pressed_and_released() = 0;
+  //virtual void bottom_held_setting_version() = 0;
   //virtual void power_down() = 0;
   void top_held();
   void bottom_held();

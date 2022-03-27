@@ -1,0 +1,2 @@
+battery 
+---ha beállítod az időt sose kapcsol ki

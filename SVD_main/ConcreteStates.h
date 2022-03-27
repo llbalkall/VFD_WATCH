@@ -6,14 +6,14 @@
 class ConcreteStateA : public AbstractState
 {
 public:
-  void update_display() override;
   void top_pressed_and_released() override;
-  void bottom_pressed_and_released() override;
+  void update_display() override;
+  void bottom_pressed_and_released() override; 
 };
 
 class DisplayTime : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -21,7 +21,7 @@ public:
 
 class DisplayDate : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -29,7 +29,7 @@ public:
 
 class DisplayDayOfWeek : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -37,7 +37,7 @@ public:
 
 class DisplaySeconds : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -45,7 +45,7 @@ public:
 
 class DisplayTemperature : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -53,7 +53,7 @@ public:
 
 class EnterSettings : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -62,7 +62,7 @@ public:
 
 class SettingNameAlarm : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -70,7 +70,7 @@ public:
 
 class SettingAlarmMode : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -78,14 +78,14 @@ public:
 
 class SettingAlarmHour : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
 };
 class SettingAlarmMinute : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -93,7 +93,7 @@ public:
 
 class SettingNameTime : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -101,7 +101,7 @@ public:
 
 class SettingHour : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -109,7 +109,7 @@ public:
 
 class SettingMinute : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -119,7 +119,7 @@ class SettingSecond : public AbstractState
 {
   long disp_zero_for_a_little_start_time = 0;
   bool do_we_want_to_display_zero_for_a_little = false;
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -127,7 +127,7 @@ public:
 
 class SettingNameDate : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -135,7 +135,7 @@ public:
 
 class SettingMonth : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -143,7 +143,7 @@ public:
 
 class SettingDayOfMonth : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -151,7 +151,7 @@ public:
 
 class SettingNameDayOfWeek : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -159,7 +159,7 @@ public:
 
 class SettingDayOfWeek : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -167,7 +167,7 @@ public:
 
 class SettingNameYear : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -175,7 +175,8 @@ public:
 
 class SettingYear : public AbstractState
 {
-public:
+public: 
+  unsigned long startmillis = this->commander->current_millis;
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -183,7 +184,7 @@ public:
 
 class SettingNameTemperature : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -191,7 +192,7 @@ public:
 
 class SettingTemperature : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -199,7 +200,7 @@ public:
 
 class Alarm : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -207,7 +208,7 @@ public:
 
 class SnoozeMessage : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -215,7 +216,7 @@ public:
 
 class SettingPartyModeName : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -223,7 +224,7 @@ public:
 
 class SettingPartyMode : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -231,7 +232,7 @@ public:
 
 class SerialNumberName : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;
@@ -239,7 +240,7 @@ public:
 
 class SerialNumber : public AbstractState
 {
-public:
+public: 
   void update_display() override;
   void top_pressed_and_released() override;
   void bottom_pressed_and_released() override;

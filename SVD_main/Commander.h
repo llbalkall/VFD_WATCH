@@ -60,7 +60,7 @@ public:
   long bttf_animation_start_millis;
 
   bool are_we_in_settings;
-  bool botton_press_is_to_serial;
+  bool setting_holding;
 
   void TransitionTo(AbstractState *state);
   void Update();

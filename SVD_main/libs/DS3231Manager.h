@@ -18,6 +18,7 @@ public:
     void clearAlarmStatusBits();
     int readRTCRegister(int address);
     void writeRTCRegister(int address, int value);
+    void set_seconds(uint16_t value, Time time);
     void set_minute(uint16_t value, Time time);
     void set_hour(uint16_t value, Time time);
     void set_dayOfWeek(uint16_t value, Time time);

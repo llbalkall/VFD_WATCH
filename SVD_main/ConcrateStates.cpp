@@ -1,13 +1,11 @@
 #include "ConcreteStates.h"
 
-void ConcreteStateA::update_display()
-{
-}
+
 
 void DisplayTime::update_display()
 {
   this->commander->are_we_in_settings = false;
-    this->commander->botton_press_is_to_serial= false;
+    this->commander->setting_holding= false;
   this->commander->display_hour_minute();
   int hour = bcdToDec(this->commander->ds3231Manager.readRTCRegister(0x0C));
   int minute = bcdToDec(this->commander->ds3231Manager.readRTCRegister(0x0B));
@@ -98,6 +96,7 @@ void EnterSettings::top_pressed_and_released()
 
 void EnterSettings::bottom_pressed_and_released()
 {
+  this->commander->setting_holding = false;
   this->commander->TransitionTo(new SettingNameAlarm);
 }
 
@@ -107,11 +106,21 @@ void SettingNameAlarm::update_display()
 }
 void SettingNameAlarm::top_pressed_and_released()
 {
-  this->commander->setting_value = 0 /*TODO: CURRENT_ALARM MODE*/;
+  if (this->commander->ds3231Manager.is_alarm_turned_off){
+    this->commander->setting_value = 2;
+  } else {
+    if (this->commander->alarm_sound){
+      this->commander->setting_value = 0;
+    } else {
+      this->commander->setting_value = 1;
+    }
+  } /*TODO: CURRENT_ALARM MODE*/;
+
   this->commander->TransitionTo(new SettingAlarmMode);
 }
 void SettingNameAlarm::bottom_pressed_and_released()
 {
+  this->commander->setting_holding = false;
   this->commander->TransitionTo(new SettingNameTime);
 }
 
@@ -215,12 +224,14 @@ void SettingNameTime::update_display()
 void SettingNameTime::top_pressed_and_released()
 {
   this->commander->setting_value = this->commander->current_time.hour;
+  this->commander->setting_holding = false;
   this->commander->TransitionTo(new SettingHour);
   //this->commander->ds3231Manager.writeRTCRegister(0x0e, B00000100); //setting the A2IE bit to zero: disableing the alarm (other pins are good as 0)
 }
 
 void SettingNameTime::bottom_pressed_and_released()
 {
+  this->commander->setting_holding = false;
   this->commander->TransitionTo(new SettingNameDate);
 }
 
@@ -263,8 +274,8 @@ void SettingMinute::top_pressed_and_released()
 {
   //this->commander->TransitionTo(new SettingNameDayOfWeek);
   this->commander->ds3231Manager.set_minute(this->commander->setting_value, this->commander->current_time);
-  this->commander->is_second_setting = true;
-  this->commander->TransitionTo(new SettingSecond);
+  //this->commander->is_second_setting = true;
+  this->commander->TransitionTo(new DisplayTime); //setting seconds
 }
 
 void SettingMinute::bottom_pressed_and_released()
@@ -273,8 +284,6 @@ void SettingMinute::bottom_pressed_and_released()
   if (this->commander->setting_value == 60)
     this->commander->setting_value = 0;
  }
-
-
 
 void SettingSecond::update_display()
 {
@@ -322,6 +331,7 @@ void SettingNameDate::top_pressed_and_released()
 
 void SettingNameDate::bottom_pressed_and_released()
 {
+  this->commander->setting_holding = false;
   this->commander->TransitionTo(new SettingNameDayOfWeek);
 }
 
@@ -415,6 +425,7 @@ void SettingNameDayOfWeek::top_pressed_and_released()
 
 void SettingNameDayOfWeek::bottom_pressed_and_released()
 {
+  this->commander->setting_holding = false;
   this->commander->TransitionTo(new SettingNameYear);
 }
 
@@ -449,8 +460,17 @@ void SettingNameYear::top_pressed_and_released()
 
 void SettingNameYear::bottom_pressed_and_released()
 {
+  this->commander->setting_holding = false;
   this->commander->TransitionTo(new SettingNameTemperature);
 }
+
+/*void SettingYear::bottom_held_setting_version(){
+    if (this->commander->current_millis - startmillis > 1000){
+      startmillis = this->commander->current_millis;
+      bottom_pressed_and_released();
+    }
+    this->commander->TransitionTo(new DisplayTime);
+}*/
 
 void SettingYear::update_display()
 {
@@ -492,6 +512,7 @@ void SettingNameTemperature::top_pressed_and_released()
 
 void SettingNameTemperature::bottom_pressed_and_released()
 {
+  this->commander->setting_holding = false;
   this->commander->TransitionTo(new SerialNumberName);
 }
 
